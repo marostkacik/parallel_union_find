@@ -1,17 +1,17 @@
-disjoint_set::disjoint_set()
+node::node()
 : _parent(this)
 {
 }
 
-disjoint_set*
-disjoint_set::find_set()
+node*
+node::find_set()
 {
-    disjoint_set* me = this;
-    disjoint_set* parent = _parent.load();
+    node* me = this;
+    node* parent = _parent.load();
 
     while (me != parent)
     {
-        disjoint_set* grand_parent = parent->_parent.load();
+        node* grand_parent = parent->_parent.load();
 
         me->_parent.compare_exchange_strong(parent, grand_parent);
         me = parent;
@@ -22,16 +22,16 @@ disjoint_set::find_set()
 }
 
 bool
-disjoint_set::same_set(disjoint_set* other)
+node::same_set(node* other)
 {
     return find_set() == other->find_set();
 }
 
 void
-disjoint_set::union_set(disjoint_set* other)
+node::union_set(node* other)
 {
-    disjoint_set* me_repr = find_set();
-    disjoint_set* other_repr = other->find_set();
+    node* me_repr = find_set();
+    node* other_repr = other->find_set();
 
     while (me_repr != other_repr)
     {
