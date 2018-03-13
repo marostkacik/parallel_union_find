@@ -27,7 +27,7 @@ node::same_set(node* other)
     return find_set() == other->find_set();
 }
 
-void
+bool
 node::union_set(node* other)
 {
     node* me_repr = find_set();
@@ -43,4 +43,6 @@ node::union_set(node* other)
         me_repr = me_repr->find_set();
         other_repr = other_repr->find_set();
     }
+
+    return true;
 }

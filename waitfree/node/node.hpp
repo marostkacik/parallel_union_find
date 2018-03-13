@@ -11,7 +11,7 @@ namespace parallel_union_find::waitfree
 
             node* find_set();
             bool same_set(node*);
-            void union_set(node*);
+            bool union_set(node*);
         private:
             std::atomic<node*> _parent;
     };
