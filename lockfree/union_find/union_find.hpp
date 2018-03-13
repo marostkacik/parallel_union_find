@@ -1,22 +1,9 @@
 #pragma once
 
-#include <bits/stdc++.h>
-#include "lockfree/addon/disjoint_set.hpp"
+#include "union_find/union_find.hpp"
+#include "lockfree/node/node.hpp"
 
-namespace parallel_union_find::lockfree::data_structure
+namespace parallel_union_find::lockfree
 {
-    class disjoint_set
-    {
-        public:
-            disjoint_set();
-
-
-
-            void resize();
-            uint64_t capacity() const;
-        protected:
-
-    };
-
-    #include "disjoint_set.tpp"
+    using union_find = parallel_union_find::union_find<node>;
 }
