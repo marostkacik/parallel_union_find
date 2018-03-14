@@ -16,6 +16,7 @@ namespace parallel_union_find
             void resize(uint64_t);
             uint64_t size() const;
             uint64_t capacity() const;
+
         private:
             std::mutex _allocation_mutex;
             std::array<node*, 64 + 1> _array;
@@ -26,6 +27,11 @@ namespace parallel_union_find
 
             void _add_new_layer();
             static std::pair<uint64_t, uint64_t> _index_to_pos(uint64_t);
+
+        // compile-time requirements for node type
+        private:
+            static_assert(std::is_constructible<node>::value, "node must have constructor with no parameters");
+
     };
 
     #include "union_find.tpp"
