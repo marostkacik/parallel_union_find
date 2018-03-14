@@ -1,17 +1,17 @@
-node::node()
+simple_node::simple_node()
 : _parent(this)
 {
 }
 
-node*
-node::find_set()
+simple_node*
+simple_node::find_set()
 {
-    node* me = this;
-    node* parent = _parent.load();
+    simple_node* me = this;
+    simple_node* parent = _parent.load();
 
     while (me != parent)
     {
-        node* grand_parent = parent->_parent.load();
+        simple_node* grand_parent = parent->_parent.load();
 
         me->_parent.compare_exchange_strong(parent, grand_parent);
         me = parent;
@@ -22,16 +22,16 @@ node::find_set()
 }
 
 bool
-node::same_set(node* other)
+simple_node::same_set(simple_node* other)
 {
     return find_set() == other->find_set();
 }
 
 bool
-node::union_set(node* other)
+simple_node::union_set(simple_node* other)
 {
-    node* me_repr = find_set();
-    node* other_repr = other->find_set();
+    simple_node* me_repr = find_set();
+    simple_node* other_repr = other->find_set();
 
     while (me_repr != other_repr)
     {
