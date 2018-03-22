@@ -95,7 +95,7 @@ template<typename R>
 void
 Node<R>::mark_as_dead()
 {
-    _list_node._dead.store(false);
+    _list_node._dead.store(true);
 }
 
 template<typename R>
