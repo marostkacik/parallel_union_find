@@ -5,18 +5,18 @@ namespace parallel_union_find::noed::lockfree
 using namespace std;
 
 template<typename R>
-struct Node;
+class Node;
 
 template<typename R>
-struct UnionNode;
+class UnionNode;
 
 template<typename R>
-struct ListNode;
+class ListNode;
 
 template<typename R>
-struct Node
+class Node
 {
-public:
+public: // methods
     Node(R * const);
 
     Node<R>* find_set(); // waitfree
@@ -29,32 +29,32 @@ public:
     size_t   active_list_length(); // waitfree
     Node<R>* get_random_active_node(size_t seed); // waitfree
 
-    R*       get_representative();
-    void     mark_as_dead();
+    R*       get_representative(); // waitfree
+    void     mark_as_dead(); // waitfree
 
-private:
+private: // data
     UnionNode<R> _union_node;
     ListNode<R>  _list_node;
 
     std::atomic<bool> _spin_lock;
     R * const         _representative;
 
-private:
+private: // private methods
     bool lock();
     void unlock();
 
-private:
+private: // friends
     friend UnionNode<R>;
     friend ListNode<R>;
 
-private:
-    // TODO static assert for member functions of R
+private: // requirements for template parameter
     static_assert(true);
 };
 
 template<typename R>
-struct UnionNode
+class UnionNode
 {
+public:
     UnionNode(Node<R>*);
 
     Node<R>* find_set();              // waitfree
@@ -62,13 +62,14 @@ struct UnionNode
     void     merge_set(Node<R>*);     // atomicity and correct parameters must be guaranteed by caller
     void     add_mask(uint64_t mask); // waitfree
 
+private:
     std::atomic<Node<R>*> _parent;
     std::atomic<uint64_t> _mask;
     uint64_t              _size;
 };
 
 template<typename R>
-struct ListNode
+class ListNode
 {
     ListNode(Node<R>*);
 
@@ -80,8 +81,8 @@ struct ListNode
     std::atomic<size_t>   _length;
 
     void append_list(Node<R>* other); // atomicity and correct parameters must be guaranteed by caller
-    static Node<R>* shift_to_next_active(Node<R>* head_node, Node<R>*); // if act is active, no shift is done, returns nullptr if such node does not exists, also tries to pop dead nodes
-    static Node<R>* get_node(Node<R>* head_node, size_t n); // waitfree, returns nth active node in list, or nullptr if n is bigger or equal to number of nodes in list. Also pops dead nodes, but only if head_node is still head node. Returns nullptr if there's no active node. 0 indexed
+    static Node<R>* shift_to_next_active(Node<R>* head_node, Node<R>*);
+    static Node<R>* get_node(Node<R>* head_node, size_t n);
 };
 
 #include "on_the_fly_scc_node.tpp.tpp"
