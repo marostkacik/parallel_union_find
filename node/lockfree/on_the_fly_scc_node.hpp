@@ -32,7 +32,7 @@ public:
     R*       get_representative();
     void     mark_as_dead();
 
-public:
+private:
     UnionNode<R> _union_node;
     ListNode<R>  _list_node;
 
@@ -44,6 +44,11 @@ private:
     void unlock();
 
 private:
+    friend UnionNode<R>;
+    friend ListNode<R>;
+
+private:
+    // TODO static assert for member functions of R
     static_assert(true);
 };
 
