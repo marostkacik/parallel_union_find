@@ -2,7 +2,7 @@
 
 #include <bits/stdc++.h>
 
-namespace parallel_union_find::waitfree
+namespace parallel_union_find::node::waitfree
 {
     class simple_node
     {

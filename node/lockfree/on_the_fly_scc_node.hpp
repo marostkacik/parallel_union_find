@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 
-namespace parallel_union_find::noed::lockfree
+namespace parallel_union_find::node::lockfree
 {
 using namespace std;
 

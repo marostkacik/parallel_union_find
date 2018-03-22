@@ -2,7 +2,7 @@
 
 #include <bits/stdc++.h>
 
-namespace parallel_union_find::lockfree
+namespace parallel_union_find::node::lockfree
 {
     class simple_node
     {
