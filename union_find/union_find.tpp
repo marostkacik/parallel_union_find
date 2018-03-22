@@ -66,10 +66,8 @@ union_find<node>::_add_new_layer()
     if (add_capacity == 0)
         add_capacity = 1;
 
-    // allocate and construct layer of size `add_capacity`
-    new_layer_pointer = new node[add_capacity];
-    // add layer to array of layers
-    _array.at(new_layer_idx) = new_layer_pointer;
+    // allocate add_capacity nodes without calling constructor
+    _array.at(new_layer_idx) = static_cast<node*>(operator new(sizeof(node) * add_capacity));
 
     // update capacity
     _capacity.store(_capacity.load() + add_capacity);
