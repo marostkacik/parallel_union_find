@@ -183,7 +183,9 @@ template<typename R>
 void
 UnionNode<R>::add_mask(uint64_t mask)
 {
+    // set mask to this node
     _mask.fetch_or(mask);
+    // propagate change to representative
     find_set();
 }
 
