@@ -9,6 +9,8 @@ template<typename node>
 class per_thread_reserve_storage : public simple_storage<node>
 {
 public:
+    per_thread_reserve_storage();
+
     void     reserve_exclusive_segment(uint8_t thread_id, uint64_t length);
     uint64_t get_new_free_position(uint8_t thread_id);
     uint64_t how_many_left_positions(uint8_t thread_id);
