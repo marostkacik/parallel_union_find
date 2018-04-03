@@ -1,19 +1,19 @@
 template<typename node>
-union_find<node>::union_find()
+simple_storage<node>::simple_storage()
 : _allocation_mutex(), _array(), _size(0), _capacity(0), _layer(0)
 {
 }
 
 template<typename node>
 node*
-union_find<node>::at(uint64_t index)
+simple_storage<node>::at(uint64_t index)
 {
     std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
     return _array.at(pos.first) + pos.second;
 }
 
 template<typename node>
-union_find<node>::~union_find()
+simple_storage<node>::~simple_storage()
 {
     uint64_t first_unused_layer = _layer.load();
 
@@ -23,7 +23,7 @@ union_find<node>::~union_find()
 
 template<typename node>
 void
-union_find<node>::resize(uint64_t new_size)
+simple_storage<node>::resize(uint64_t new_size)
 {
     // live lock for allocation of new layers
     while (new_size > _capacity.load())
@@ -41,21 +41,21 @@ union_find<node>::resize(uint64_t new_size)
 
 template<typename node>
 uint64_t
-union_find<node>::size() const
+simple_storage<node>::size() const
 {
     return _size.load();
 }
 
 template<typename node>
 uint64_t
-union_find<node>::capacity() const
+simple_storage<node>::capacity() const
 {
     return _capacity.load();
 }
 
 template<typename node>
 void
-union_find<node>::_add_new_layer()
+simple_storage<node>::_add_new_layer()
 {
     uint64_t new_layer_idx = _layer.fetch_add(1);
     node* new_layer_pointer = nullptr;
@@ -66,7 +66,7 @@ union_find<node>::_add_new_layer()
     if (add_capacity == 0)
         add_capacity = 1;
 
-    // allocate add_capacity nodes without calling constructor
+    // allocate add_capacity nodes without calling constnstructor
     _array.at(new_layer_idx) = static_cast<node*>(operator new(sizeof(node) * add_capacity));
 
     // update capacity
@@ -75,7 +75,7 @@ union_find<node>::_add_new_layer()
 
 template<typename node>
 std::pair<uint64_t, uint64_t>
-union_find<node>::_index_to_pos(uint64_t pos)
+simple_storage<node>::_index_to_pos(uint64_t pos)
 {
     if (pos == 0)
         return {0, 0};
