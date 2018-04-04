@@ -14,10 +14,11 @@ public:
 
     void     add_mask(uint64_t mask);
     bool     has_mask(uint64_t mask);
-
     Node<R>* get_node_from_set();
+
     R*       get_representative();
     void     mark_as_dead();
+    bool     is_dead();
 
 private:
     bool lock();

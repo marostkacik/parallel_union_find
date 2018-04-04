@@ -1,5 +1,5 @@
-simple_node::simple_node()
-: _lock(false), _size(1), _parent(this)
+simple_node::simple_node(node* repr)
+: _representative(repr), _lock(false), _dead(false), _size(1), _parent(this)
 {
 }
 
@@ -79,4 +79,22 @@ simple_node::union_set(simple_node* other)
     }
 
     return true;
+}
+
+node*
+simple_node::get_representative()
+{
+    return _representative;
+}
+
+void
+simple_node::mark_as_dead()
+{
+    _dead.store(true);
+}
+
+bool
+simple_node::is_dead()
+{
+    return _dead.load();
 }

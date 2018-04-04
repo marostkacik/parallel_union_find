@@ -1,6 +1,3 @@
-//******
-//*Node*
-//******
 template<typename R>
 Node<R>::Node(R* r)
 : _representative(r), _spin_lock(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this), _dead(false)
@@ -154,6 +151,13 @@ void
 Node<R>::mark_as_dead()
 {
     _dead.store(true);
+}
+
+template<typename R>
+bool
+Node<R>::is_dead()
+{
+    return _dead.load();
 }
 
 template<typename R>

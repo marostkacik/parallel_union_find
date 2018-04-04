@@ -4,15 +4,23 @@
 
 namespace parallel_union_find::node::waitfree
 {
+template<typename node>
 class simple_node
 {
 public:
-    simple_node();
+    simple_node(node*);
 
     simple_node* find_set();
-    bool same_set(simple_node*);
-    bool union_set(simple_node*);
+    bool         same_set(simple_node*);
+    bool         union_set(simple_node*);
+
+    node* get_representative();
+    void  mark_as_dead();
+    bool  is_dead();
+
 private:
+    node* const               _representative
+    std::atomic<bool>         _dead;
     std::atomic<simple_node*> _parent;
 };
 
