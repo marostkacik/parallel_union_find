@@ -4,17 +4,17 @@
 
 namespace parallel_union_find::node::waitfree
 {
-    class simple_node
-    {
-        public:
-            simple_node();
+class simple_node
+{
+public:
+    simple_node();
 
-            simple_node* find_set();
-            bool same_set(simple_node*);
-            bool union_set(simple_node*);
-        private:
-            std::atomic<simple_node*> _parent;
-    };
+    simple_node* find_set();
+    bool same_set(simple_node*);
+    bool union_set(simple_node*);
+private:
+    std::atomic<simple_node*> _parent;
+};
 
     #include "simple_node.tpp"
 }
