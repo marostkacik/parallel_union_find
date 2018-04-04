@@ -1,10 +1,12 @@
-simple_node::simple_node(node* repr)
+template<typename node>
+simple_node<node>::simple_node(node* repr)
 : _representative(repr), _lock(false), _dead(false), _size(1), _parent(this)
 {
 }
 
+template<typename node>
 simple_node*
-simple_node::find_set()
+simple_node<node>::find_set()
 {
     simple_node* me = this;
     simple_node* parent = _parent.load();
@@ -21,14 +23,16 @@ simple_node::find_set()
     return me;
 }
 
+template<typename node>
 bool
-simple_node::same_set(simple_node* other)
+simple_node<node>::same_set(simple_node* other)
 {
     return find_set() == other->find_set();
 }
 
+template<typename node>
 bool
-simple_node::union_set(simple_node* other)
+simple_node<node>::union_set(simple_node* other)
 {
     simple_node* me_repr = find_set();
     simple_node* other_repr = other->find_set();
@@ -81,20 +85,23 @@ simple_node::union_set(simple_node* other)
     return true;
 }
 
+template<typename node>
 node*
-simple_node::get_representative()
+simple_node<node>::get_representative()
 {
     return _representative;
 }
 
+template<typename node>
 void
-simple_node::mark_as_dead()
+simple_node<node>::mark_as_dead()
 {
     _dead.store(true);
 }
 
+template<typename node>
 bool
-simple_node::is_dead()
+simple_node<node>::is_dead()
 {
     return _dead.load();
 }
