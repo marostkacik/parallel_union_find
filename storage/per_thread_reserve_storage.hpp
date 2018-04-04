@@ -16,9 +16,9 @@ public:
     uint64_t how_many_left_positions(uint8_t thread_id);
 
 private:
-    std::atomic<uint64_t>                                     _first_free_global_position;
-    std::array<uint64_t, std::numeric_limits<uint8_t>::max()> _next_local_position;
-    std::array<uint64_t, std::numeric_limits<uint8_t>::max()> _left_local_positions;
+    std::atomic<uint64_t>    _first_free_global_position;
+    std::array<uint64_t, 64> _next_local_position;
+    std::array<uint64_t, 64> _left_local_positions;
 };
 
 #include "per_thread_reserve_storage.tpp"
