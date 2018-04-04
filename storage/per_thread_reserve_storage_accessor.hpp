@@ -9,7 +9,7 @@ template<typename node>
 class per_thread_reserve_storage_accessor
 {
 public:
-    per_thread_reserve_storage_accessor(per_thread_reserve_storage& ptrs, uint8_t thread_id);
+    per_thread_reserve_storage_accessor(per_thread_reserve_storage<node>& ptrs, uint8_t thread_id);
 
     node* at(uint64_t);
 
@@ -22,8 +22,8 @@ public:
     uint64_t how_many_left_positions();
 
 private:
-    per_thread_reserve_storage& _ptrs;
-    uint8_t                     _thread_id;
+    per_thread_reserve_storage<node>& _ptrs;
+    uint8_t                           _thread_id;
 };
 
 #include "per_thread_reserve_storage_accessor.tpp"

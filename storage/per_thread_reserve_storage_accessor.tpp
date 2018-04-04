@@ -1,46 +1,54 @@
-per_thread_reserve_storage_accessor::per_thread_reserve_storage_accessor(per_thread_reserve_storage& ptrs, uint8_t thread_id)
+template<typename node>
+per_thread_reserve_storage_accessor<node>::per_thread_reserve_storage_accessor(per_thread_reserve_storage<node>& ptrs, uint8_t thread_id)
 : _ptrs(ptrs), _thread_id(thread_id)
 {
 }
 
+template<typename node>
 node*
-per_thread_reserve_storage_accessor::at(uint64_t x)
+per_thread_reserve_storage_accessor<node>::at(uint64_t x)
 {
     return _ptrs.at(x);
 }
 
+template<typename node>
 void
-per_thread_reserve_storage_accessor::resize(uint64_t x)
+per_thread_reserve_storage_accessor<node>::resize(uint64_t x)
 {
     return _ptrs.resize(x);
 }
 
+template<typename node>
 uint64_t
-per_thread_reserve_storage_accessor::size() const
+per_thread_reserve_storage_accessor<node>::size() const
 {
     return _ptrs.size();
 }
 
+template<typename node>
 uint64_t
-per_thread_reserve_storage_accessor::capacity() const
+per_thread_reserve_storage_accessor<node>::capacity() const
 {
     return _ptrs.capacity();
 }
 
+template<typename node>
 void
-per_thread_reserve_storage_accessor::reserve_exclusive_segment(uint64_t length)
+per_thread_reserve_storage_accessor<node>::reserve_exclusive_segment(uint64_t length)
 {
     return _ptrs.reserve_exclusive_segment(_thread_id, length);
 }
 
+template<typename node>
 uint64_t
-per_thread_reserve_storage_accessor::get_new_free_position()
+per_thread_reserve_storage_accessor<node>::get_new_free_position()
 {
     return _ptrs.get_new_free_position(_thread_id);
 }
 
+template<typename node>
 uint64_t
-per_thread_reserve_storage_accessor::how_many_left_positions()
+per_thread_reserve_storage_accessor<node>::how_many_left_positions()
 {
     return _ptrs.how_many_left_positions(_thread_id);
 }
