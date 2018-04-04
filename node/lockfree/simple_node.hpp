@@ -14,9 +14,9 @@ public:
     bool         same_set(simple_node*);
     bool         union_set(simple_node*);
 
-    node* get_representative();
-    void  mark_as_dead();
-    bool  is_dead();
+    node*        get_representative();
+    void         mark_as_dead();
+    bool         is_dead();
 
 private:
     node* const               _representative;
