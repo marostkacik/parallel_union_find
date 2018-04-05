@@ -5,7 +5,7 @@ simple_node<node>::simple_node(node* repr)
 }
 
 template<typename node>
-simple_node*
+simple_node<node>*
 simple_node<node>::find_set()
 {
     simple_node* me = this;

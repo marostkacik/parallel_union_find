@@ -19,7 +19,7 @@ public:
     bool         is_dead();
 
 private:
-    node* const               _representative
+    node* const               _representative;
     std::atomic<bool>         _dead;
     std::atomic<simple_node*> _parent;
 };

@@ -3,8 +3,8 @@ void
 simple_algorithm(GraphNode* start_node)
 {
     using Node_ptr   = decltype(std::declval<GraphNode>().get_node());
-    using Node       = std::remove_pointer<Node_ptr>::type;
-    using GNiterator = GraphNode::iterator;
+    using Node       = typename std::remove_pointer<Node_ptr>::type;
+    using GNiterator = typename GraphNode::iterator;
 
     std::unordered_set<Node*>                     seen_nodes;
     std::stack<GraphNode*>                        stack_path_graph_nodes;
