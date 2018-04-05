@@ -1,12 +1,17 @@
-template<typename GraphNode, typename Node>
+template<typename GraphNode>
 void
-Solver::run(GraphNode* start_node)
+simple_algorithm(GraphNode* start_node)
 {
-    std::unordered_set<Node*>                                       seen_nodes;
-    std::stack<GraphNode*>                                          stack_path_graph_nodes;
-    std::stack<std::pair<GraphNode::iterator, GraphNode::iterator>> stack_explore_pairs;
-    std::stack<GraphNode*>                                          stack_explore_graph_nodes;
+    using Node_ptr   = decltype(std::declval<GraphNode>().get_node());
+    using Node       = std::remove_pointer<Node_ptr>::type;
+    using GNiterator = GraphNode::iterator;
 
+    std::unordered_set<Node*>                     seen_nodes;
+    std::stack<GraphNode*>                        stack_path_graph_nodes;
+    std::stack<std::pair<GNiterator, GNiterator>> stack_explore_pairs;
+    std::stack<GraphNode*>                        stack_explore_graph_nodes;
+
+    // dfs init
     seen_nodes.insert(start_node->get_node());
     stack_path_graph_nodes.emplace(start_node);
     stack_explore_pairs.emplace(start_node);
