@@ -40,6 +40,7 @@ per_thread_reserve_storage<node>::create_new_node(uint8_t thread_id, Args&&... a
     _left_local_positions.at(thread_id)--;
 
     new (simple_storage<node>::at(pos)) node(std::forward<Args>(args)...);
+    simple_storage<node>::mark_as_used(pos);
 
     return pos;
 }
