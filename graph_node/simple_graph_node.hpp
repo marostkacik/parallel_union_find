@@ -19,7 +19,7 @@ public:
     simple_graph_node<node>*          operator*();
 
 private:
-    friend simple_graph_node_iterator<node>;
+    friend simple_graph_node<node>;
 
 private:
     simple_graph_node<node>* _simple_graph_node;
@@ -31,7 +31,7 @@ template<typename node>
 class simple_graph_node
 {
 public:
-    using iterator = typename simple_graph_node_iterator<node>;
+    using iterator = simple_graph_node_iterator<node>;
 
 public:
     simple_graph_node(node*);

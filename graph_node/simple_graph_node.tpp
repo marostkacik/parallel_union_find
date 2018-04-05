@@ -48,7 +48,7 @@ simple_graph_node<node>::simple_graph_node(node* n)
 }
 
 template<typename node>
-std::pair<simple_graph_node<node>::iterator, simple_graph_node<node>::iterator>
+std::pair<typename simple_graph_node<node>::iterator, typename simple_graph_node<node>::iterator>
 simple_graph_node<node>::get_random_neighbors_iterators()
 {
     simple_graph_node<node>::iterator start;
@@ -78,6 +78,7 @@ simple_graph_node<node>::get_random_neighbors_iterators()
 }
 
 template<typename node>
+void
 simple_graph_node<node>::add_son(simple_graph_node<node>* new_son)
 {
     _neighbors.push_back(new_son);
