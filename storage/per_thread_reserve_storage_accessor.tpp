@@ -41,14 +41,15 @@ per_thread_reserve_storage_accessor<node>::reserve_exclusive_segment(uint64_t le
 
 template<typename node>
 uint64_t
-per_thread_reserve_storage_accessor<node>::get_new_free_position()
-{
-    return _ptrs.get_new_free_position(_thread_id);
-}
-
-template<typename node>
-uint64_t
 per_thread_reserve_storage_accessor<node>::how_many_left_positions()
 {
     return _ptrs.how_many_left_positions(_thread_id);
+}
+
+template<typename node>
+template<typename... Args>
+uint64_t
+per_thread_reserve_storage_accessor<node>::create_new_node(Args&&... args)
+{
+    return _ptrs.create_new_node(_thread_id, std::forward<Args>(args)...);
 }

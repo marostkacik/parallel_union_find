@@ -1,15 +1,7 @@
 template<typename node>
 simple_storage<node>::simple_storage()
-: _allocation_mutex(), _array(), _size(0), _capacity(0), _layer(0)
+: _allocation_mutex(), _array(), _used(), _size(0), _capacity(0), _layer(0)
 {
-}
-
-template<typename node>
-node*
-simple_storage<node>::at(uint64_t index)
-{
-    std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
-    return _array.at(pos.first) + pos.second;
 }
 
 template<typename node>
@@ -19,6 +11,14 @@ simple_storage<node>::~simple_storage()
 
     for (uint64_t layer = 0; layer < first_unused_layer; ++layer)
         delete[] _array.at(layer);
+}
+
+template<typename node>
+node*
+simple_storage<node>::at(uint64_t index)
+{
+    std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
+    return _array.at(pos.first) + pos.second;
 }
 
 template<typename node>
@@ -35,7 +35,7 @@ simple_storage<node>::resize(uint64_t new_size)
 
     // just increase counter, no new layer is needed
     uint64_t old_size = _size.load();
-    while (new_size < _size.load())
+    while (new_size > old_size)
         _size.compare_exchange_weak(old_size, new_size);
 }
 
@@ -55,19 +55,30 @@ simple_storage<node>::capacity() const
 
 template<typename node>
 void
+simple_storage<node>::mark_as_used(uint64_t index)
+{
+    std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
+    _used.at(pos.first).at(pos.second) = true;
+}
+
+template<typename node>
+bool
+simple_storage<node>::is_used(uint64_t index)
+{
+    std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
+    return _used.at(pos.first).at(pos.second);
+}
+
+template<typename node>
+void
 simple_storage<node>::_add_new_layer()
 {
     uint64_t new_layer_idx = _layer.fetch_add(1);
-    node* new_layer_pointer = nullptr;
-    uint64_t add_capacity;
+    uint64_t add_capacity = (_capacity.load() != 0) ? _capacity.load() : 1;
 
-    // determine size of new layer
-    add_capacity = _capacity.load();
-    if (add_capacity == 0)
-        add_capacity = 1;
-
-    // allocate add_capacity nodes without calling constnstructor
+    // allocate add_capacity nodes without calling constructor
     _array.at(new_layer_idx) = static_cast<node*>(operator new(sizeof(node) * add_capacity));
+    _used.at(new_layer_idx).resize(add_capacity, false);
 
     // update capacity
     _capacity.store(_capacity.load() + add_capacity);

@@ -23,18 +23,23 @@ per_thread_reserve_storage<node>::reserve_exclusive_segment(uint8_t thread_id, u
 
 template<typename node>
 uint64_t
-per_thread_reserve_storage<node>::get_new_free_position(uint8_t thread_id)
+per_thread_reserve_storage<node>::how_many_left_positions(uint8_t thread_id)
+{
+    return _left_local_positions.at(thread_id);
+}
+
+template<typename node>
+template<typename... Args>
+uint64_t
+per_thread_reserve_storage<node>::create_new_node(uint8_t thread_id, Args&&... args)
 {
     if (_left_local_positions.at(thread_id) == 0)
         reserve_exclusive_segment(thread_id, 1000);
 
+    uint64_t pos = _next_local_position.at(thread_id)++;
     _left_local_positions.at(thread_id)--;
-    return _next_local_position.at(thread_id)++;
-}
 
-template<typename node>
-uint64_t
-per_thread_reserve_storage<node>::how_many_left_positions(uint8_t thread_id)
-{
-    return _left_local_positions.at(thread_id);
+    new (simple_storage<node>::at(pos)) node(std::forward<Args>(args)...);
+
+    return pos;
 }

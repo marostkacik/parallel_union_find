@@ -17,9 +17,14 @@ public:
     uint64_t size() const;
     uint64_t capacity() const;
 
+protected:
+    void mark_as_used(uint64_t);
+    bool is_used(uint64_t);
+
 private:
-    std::mutex                _allocation_mutex;
-    std::array<node*, 64 + 1> _array;
+    std::mutex                            _allocation_mutex;
+    std::array<node*, 64 + 1>             _array;
+    std::array<std::vector<bool>, 64 + 1> _used;
 
     std::atomic<uint64_t> _size;
     std::atomic<uint64_t> _capacity;
