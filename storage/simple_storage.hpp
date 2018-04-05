@@ -17,9 +17,10 @@ public:
     uint64_t size() const;
     uint64_t capacity() const;
 
+    std::vector<std::vector<node*>> report_components();
+
 protected:
     void mark_as_used(uint64_t);
-    bool is_used(uint64_t);
 
 private:
     std::mutex                            _allocation_mutex;
@@ -31,6 +32,7 @@ private:
     std::atomic<uint64_t> _layer;
 
     void _add_new_layer();
+    bool _is_used(uint64_t index);
     static std::pair<uint64_t, uint64_t> _index_to_pos(uint64_t);
 };
 

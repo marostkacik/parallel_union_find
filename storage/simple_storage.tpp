@@ -54,19 +54,36 @@ simple_storage<node>::capacity() const
 }
 
 template<typename node>
+std::vector<std::vector<node*>>
+simple_storage<node>::report_components()
+{
+    const uint64_t                      upper_bound = _capacity.load();
+    std::unordered_map<node*, uint64_t> representative_to_idx;
+    std::vector<std::vector<node*>>     answer;
+
+    for (uint64_t i = 0; i < upper_bound; ++i)
+        if (_is_used(i))
+        {
+            node* const act_node       = at(i);
+            node* const representative = act_node->find_set();
+
+            if (representative_to_idx.at(representative) == representative_to_idx.end())
+                representative_to_idx.emplace(representative, representative_to_idx.size()),
+                answer.emplace_back();
+
+            const uint64_t idx = representative_to_idx.at(representative);
+            answer.at(idx).push_back(act_node);
+        }
+
+    return answer;
+}
+
+template<typename node>
 void
 simple_storage<node>::mark_as_used(uint64_t index)
 {
     std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
     _used.at(pos.first).at(pos.second) = true;
-}
-
-template<typename node>
-bool
-simple_storage<node>::is_used(uint64_t index)
-{
-    std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
-    return _used.at(pos.first).at(pos.second);
 }
 
 template<typename node>
@@ -82,6 +99,14 @@ simple_storage<node>::_add_new_layer()
 
     // update capacity
     _capacity.store(_capacity.load() + add_capacity);
+}
+
+template<typename node>
+bool
+simple_storage<node>::_is_used(uint64_t index)
+{
+    std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
+    return _used.at(pos.first).at(pos.second);
 }
 
 template<typename node>
