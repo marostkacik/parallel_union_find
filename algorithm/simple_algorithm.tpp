@@ -34,7 +34,8 @@ simple_algorithm(GraphNode* start_node)
             continue;
         }
 
-        GraphNode* next_graph_node = stack_explore_pairs.top().first++;
+        GraphNode* next_graph_node = *stack_explore_pairs.top().first;
+        ++stack_explore_pairs.top().first;
 
         if (!next_graph_node->get_node()->is_dead())
         {
