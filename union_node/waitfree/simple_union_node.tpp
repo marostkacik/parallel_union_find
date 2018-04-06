@@ -1,14 +1,14 @@
-simple_node::simple_node()
+simple_union_node::simple_union_node()
 : _dead(false), _parent(this), _mask(0)
 {
 }
 
-simple_node*
-simple_node::find_set() const
+simple_union_node*
+simple_union_node::find_set() const
 {
-    simple_node* me           = this;
-    simple_node* parent       = _parent.load();
-    simple_node* grand_parent = nullptr;
+    simple_union_node* me           = this;
+    simple_union_node* parent       = _parent.load();
+    simple_union_node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ simple_node::find_set() const
 }
 
 bool
-simple_node::same_set(simple_node const * other) const
+simple_union_node::same_set(simple_union_node const * other) const
 {
-    simple_node* me_repr    = find_set();
-    simple_node* other_repr = other->find_set();
+    simple_union_node* me_repr    = find_set();
+    simple_union_node* other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -44,16 +44,16 @@ simple_node::same_set(simple_node const * other) const
 }
 
 bool
-simple_node::is_dead() const
+simple_union_node::is_dead() const
 {
     return _dead.load();
 }
 
 bool
-simple_node::union_set(simple_node* other)
+simple_union_node::union_set(simple_union_node* other)
 {
-    simple_node* me_repr    = find_set();
-    simple_node* other_repr = other->find_set();
+    simple_union_node* me_repr    = find_set();
+    simple_union_node* other_repr = other->find_set();
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -65,13 +65,13 @@ simple_node::union_set(simple_node* other)
 }
 
 void
-simple_node::mark_as_dead()
+simple_union_node::mark_as_dead()
 {
     _dead.store(false);
 }
 
 bool
-simple_node::is_top() const
+simple_union_node::is_top() const
 {
     return _parent.load() == this;
 }
