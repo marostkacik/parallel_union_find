@@ -43,5 +43,5 @@ private:
     mutable std::atomic<on_the_fly_scc_node*> _next_node;
 };
 
-#include "on_the_fly_scc_node.tpp"
+#include "on_the_fly_scc_union_node.tpp"
 }
