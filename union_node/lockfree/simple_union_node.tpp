@@ -93,6 +93,7 @@ simple_union_node::add_mask(uint64_t mask)
 
     do
     {
+        repr = repr->find_set();
         repr->_mask.fetch_or(mask);
     } while (!repr->is_top());
 }
