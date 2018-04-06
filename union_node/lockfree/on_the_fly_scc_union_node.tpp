@@ -1,14 +1,14 @@
-on_the_fly_scc_node::on_the_fly_scc_node()
+on_the_fly_scc_union_node::on_the_fly_scc_union_node()
 : _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
 {
 }
 
-on_the_fly_scc_node*
-on_the_fly_scc_node::find_set() const
+on_the_fly_scc_union_node*
+on_the_fly_scc_union_node::find_set() const
 {
-    on_the_fly_scc_node me           = this;
-    on_the_fly_scc_node parent       = _parent.load();
-    on_the_fly_scc_node grand_parent = nullptr;
+    on_the_fly_scc_union_node* me           = const_cast<on_the_fly_scc_union_node*>(this);
+    on_the_fly_scc_union_node* parent       = _parent.load();
+    on_the_fly_scc_union_node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ on_the_fly_scc_node::find_set() const
 }
 
 bool
-on_the_fly_scc_node::same_set(on_the_fly_scc_node const * other) const
+on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) const
 {
-    on_the_fly_scc_node* me_repr    = find_set();
-    on_the_fly_scc_node* other_repr = other->find_set();
+    on_the_fly_scc_union_node* me_repr    = find_set();
+    on_the_fly_scc_union_node* other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -44,22 +44,22 @@ on_the_fly_scc_node::same_set(on_the_fly_scc_node const * other) const
 }
 
 bool
-on_the_fly_scc_node::has_mask(uint64_t mask) const
+on_the_fly_scc_union_node::has_mask(uint64_t mask) const
 {
     return ((_mask.load()) & mask) != 0;
 }
 
 bool
-on_the_fly_scc_node::is_dead() const
+on_the_fly_scc_union_node::is_dead() const
 {
     return _dead.load();
 }
 
-on_the_fly_scc_node*
-on_the_fly_scc_node::get_node_from_set() const
+on_the_fly_scc_union_node*
+on_the_fly_scc_union_node::get_node_from_set() const
 {
-    on_the_fly_scc_node* act  = _start_node.load();
-    on_the_fly_scc_node* next = nullptr;
+    on_the_fly_scc_union_node* act  = _start_node.load();
+    on_the_fly_scc_union_node* next = nullptr;
 
     // grab act node only for yourself
     do
@@ -68,7 +68,7 @@ on_the_fly_scc_node::get_node_from_set() const
             return nullptr;
         else
             next = act->_next_node.load();
-    } while (!_start_node.compare_exchange_strong(act, next))
+    } while (!_start_node.compare_exchange_strong(act, next));
 
     // try to pop next node if it's dead
     if (next->_dead.load() && this->lock())
@@ -87,11 +87,11 @@ on_the_fly_scc_node::get_node_from_set() const
 }
 
 bool
-on_the_fly_scc_node::union_set(on_the_fly_scc_node* other)
+on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
 {
-    on_the_fly_scc_node* me_repr    = find_set();
-    on_the_fly_scc_node* other_repr = other->find_set();
-    bool                 success    = false;
+    on_the_fly_scc_union_node* me_repr    = find_set();
+    on_the_fly_scc_union_node* other_repr = other->find_set();
+    bool                 success          = false;
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -119,9 +119,9 @@ on_the_fly_scc_node::union_set(on_the_fly_scc_node* other)
 }
 
 void
-on_the_fly_scc_node::add_mask(uint64_t mask)
+on_the_fly_scc_union_node::add_mask(uint64_t mask)
 {
-    on_the_fly_scc_node* repr = find_set();
+    on_the_fly_scc_union_node* repr = find_set();
 
     do
     {
@@ -130,33 +130,33 @@ on_the_fly_scc_node::add_mask(uint64_t mask)
 }
 
 void
-on_the_fly_scc_node::mark_as_dead()
+on_the_fly_scc_union_node::mark_as_dead()
 {
     _dead.store(true);
 }
 
 bool
-on_the_fly_scc_node::is_top() const
+on_the_fly_scc_union_node::is_top() const
 {
     return _parent.load() == this;
 }
 
 bool
-on_the_fly_scc_node::lock()
+on_the_fly_scc_union_node::lock() const
 {
     bool expected = false;
     return _spin_lock.compare_exchange_strong(expected, true);
 }
 
 void
-on_the_fly_scc_node::unlock()
+on_the_fly_scc_union_node::unlock() const
 {
     bool expected = true;
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
 void
-on_the_fly_scc_node::hook_under_me(on_the_fly_scc_node* other)
+on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
     // update parent
     other->_parent.compare_exchange_strong(other, this);
@@ -172,10 +172,10 @@ on_the_fly_scc_node::hook_under_me(on_the_fly_scc_node* other)
         _start_node.store(other->_start_node.load());
     else if (other->_start_node.load())
     {
-        on_the_fly_scc_node* new_top_1 = _start_node.load();
-        on_the_fly_scc_node* new_top_2 = new_top_1->_next_node.load();
-        on_the_fly_scc_node* other_1   = other->_start_node.load();
-        on_the_fly_scc_node* other_2   = other_1->_next_node.load();
+        on_the_fly_scc_union_node* new_top_1 = _start_node.load();
+        on_the_fly_scc_union_node* new_top_2 = new_top_1->_next_node.load();
+        on_the_fly_scc_union_node* other_1   = other->_start_node.load();
+        on_the_fly_scc_union_node* other_2   = other_1->_next_node.load();
 
         // rewire cycle
         new_top_1->_next_node.store(other_2);
