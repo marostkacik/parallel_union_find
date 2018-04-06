@@ -2,7 +2,7 @@
 
 #include <bits/stdc++.h>
 
-namespace parallel_union_find::node::lockfree
+namespace parallel_union_find::union_node::lockfree
 {
 class on_the_fly_scc_union_node
 {
