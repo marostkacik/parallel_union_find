@@ -1,5 +1,5 @@
 on_the_fly_scc_node::on_the_fly_scc_node()
-: _spin_lock(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this), _dead(false)
+: _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
 {
 }
 

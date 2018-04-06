@@ -31,6 +31,7 @@ private:
 
 private:
     std::atomic<bool>                         _spin_lock;
+    std::atomic<bool>                         _dead;
 
     // union set data
     mutable std::atomic<on_the_fly_scc_node*> _parent;
@@ -40,7 +41,6 @@ private:
     // circular linked list data
     mutable std::atomic<on_the_fly_scc_node*> _start_node;
     mutable std::atomic<on_the_fly_scc_node*> _next_node;
-    std::atomic<bool>                         _dead;
 };
 
 #include "on_the_fly_scc_node.tpp"
