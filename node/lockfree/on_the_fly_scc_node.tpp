@@ -49,6 +49,12 @@ on_the_fly_scc_node::has_mask(uint64_t mask) const
     return ((_mask.load()) & mask) != 0;
 }
 
+bool
+on_the_fly_scc_node::is_dead() const
+{
+    return _dead.load();
+}
+
 on_the_fly_scc_node*
 on_the_fly_scc_node::get_node_from_set() const
 {
@@ -133,12 +139,6 @@ bool
 on_the_fly_scc_node::is_top() const
 {
     return _parent.load() == this;
-}
-
-bool
-on_the_fly_scc_node::is_dead() const
-{
-    return _dead.load();
 }
 
 bool

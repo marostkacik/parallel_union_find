@@ -13,6 +13,7 @@ public:
     on_the_fly_scc_node* find_set() const;
     bool                 same_set(on_the_fly_scc_node const *) const;
     bool                 has_mask(uint64_t) const;
+    bool                 is_dead() const;
     on_the_fly_scc_node* get_node_from_set() const;
 
     // mutators
@@ -22,7 +23,6 @@ public:
 
 private:
     bool                 is_top() const;
-    bool                 is_dead() const;
 
     bool                 lock();
     bool                 unlock();
