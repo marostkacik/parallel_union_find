@@ -6,7 +6,7 @@ simple_union_node::simple_union_node()
 simple_union_node*
 simple_union_node::find_set() const
 {
-    simple_union_node* me           = this;
+    simple_union_node* me           = const_cast<simple_union_node*>(this);
     simple_union_node* parent       = _parent.load();
     simple_union_node* grand_parent = nullptr;
 
