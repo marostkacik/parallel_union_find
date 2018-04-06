@@ -30,7 +30,7 @@ private:
     void                 hook_under_me(on_the_fly_scc_node* other);
 
 private:
-    std::atomic<bool> _spin_lock;
+    std::atomic<bool>                         _spin_lock;
 
     // union set data
     mutable std::atomic<on_the_fly_scc_node*> _parent;
