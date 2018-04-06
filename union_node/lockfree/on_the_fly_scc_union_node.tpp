@@ -38,7 +38,7 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
         else if (!me_repr->is_top())
             me_repr = me_repr->find_set();
         else if (!other_repr->is_top())
-            other_repr->find_set();
+            other_repr = other_repr->find_set();
         else
             return false;
 }
