@@ -55,7 +55,7 @@ simple_storage<node>::capacity() const
 
 template<typename node>
 std::vector<std::vector<node*>>
-simple_storage<node>::report_components()
+simple_storage<node>::report_components() const
 {
     const uint64_t                      upper_bound = _capacity.load();
     std::unordered_map<node*, uint64_t> representative_to_idx;
