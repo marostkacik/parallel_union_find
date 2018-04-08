@@ -10,7 +10,7 @@ simple_storage<node>::~simple_storage()
     uint64_t first_unused_layer = _layer.load();
 
     for (uint64_t layer = 0; layer < first_unused_layer; ++layer)
-        operator delete(_array.at(layer));
+        operator delete(_array.at(layer).load());
 }
 
 template<typename node>
@@ -18,7 +18,7 @@ node*
 simple_storage<node>::at(uint64_t index)
 {
     std::pair<uint64_t, uint64_t> pos = _index_to_pos(index);
-    return _array.at(pos.first) + pos.second;
+    return _array.at(pos.first).load() + pos.second;
 }
 
 template<typename node>
@@ -94,7 +94,7 @@ simple_storage<node>::_add_new_layer()
     uint64_t add_capacity = (_capacity.load() != 0) ? _capacity.load() : 1;
 
     // allocate add_capacity nodes without calling constructor
-    _array.at(new_layer_idx) = static_cast<node*>(operator new(sizeof(node) * add_capacity));
+    _array.at(new_layer_idx).store(static_cast<node*>(operator new(sizeof(node) * add_capacity)));
     _used.at(new_layer_idx).resize(add_capacity, false);
 
     // update capacity
