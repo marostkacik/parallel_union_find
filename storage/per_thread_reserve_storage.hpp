@@ -6,7 +6,7 @@
 namespace parallel_union_find::storage
 {
 template<typename node>
-class per_thread_reserve_storage : protected simple_storage<node>
+class per_thread_reserve_storage : public simple_storage<node>
 {
 public:
     per_thread_reserve_storage();
