@@ -1,3 +1,5 @@
+#pragma once
+
 #include <bits/stdc++.h>
 
 namespace parallel_union_find::graph_node
