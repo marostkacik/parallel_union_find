@@ -55,7 +55,7 @@ simple_storage<node>::capacity() const
 
 template<typename node>
 std::vector<std::vector<node*>>
-simple_storage<node>::report_components() const
+simple_storage<node>::report_components()
 {
     const uint64_t                      upper_bound = _capacity.load();
     std::unordered_map<node*, uint64_t> representative_to_idx;
@@ -64,10 +64,10 @@ simple_storage<node>::report_components() const
     for (uint64_t i = 0; i < upper_bound; ++i)
         if (_is_used(i))
         {
-            node* const act_node       = at(i);
-            node* const representative = act_node->find_set();
+            node* const act_node       = static_cast<node*>(at(i));
+            node* const representative = static_cast<node*>(act_node->find_set());
 
-            if (representative_to_idx.at(representative) == representative_to_idx.end())
+            if (representative_to_idx.find(representative) == representative_to_idx.end())
                 representative_to_idx.emplace(representative, representative_to_idx.size()),
                 answer.emplace_back();
 
