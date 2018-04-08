@@ -17,7 +17,7 @@ public:
     uint64_t size() const;
     uint64_t capacity() const;
 
-    std::vector<std::vector<node*>> report_components() const;
+    std::vector<std::vector<node*>> report_components();
 
 protected:
     void mark_as_used(uint64_t);
