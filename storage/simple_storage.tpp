@@ -10,7 +10,7 @@ simple_storage<node>::~simple_storage()
     uint64_t first_unused_layer = _layer.load();
 
     for (uint64_t layer = 0; layer < first_unused_layer; ++layer)
-        delete[] _array.at(layer);
+        operator delete(_array.at(layer));
 }
 
 template<typename node>
