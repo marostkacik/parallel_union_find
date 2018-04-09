@@ -1,14 +1,16 @@
-on_the_fly_scc_union_node::on_the_fly_scc_union_node()
-: _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
+template<typename Derived>
+BaseNode<Derived>::BaseNode()
+: _spin_lock(false), _dead(false), _parent(static_cast<Derived*>(this)), _mask(0), _size(1), _start_node(static_cast<Derived*>(this)), _next_node(static_cast<Derived*>(this))
 {
 }
 
-on_the_fly_scc_union_node*
-on_the_fly_scc_union_node::find_set() const
+template<typename Derived>
+Derived*
+BaseNode<Derived>::find_set() const
 {
-    on_the_fly_scc_union_node* me           = const_cast<on_the_fly_scc_union_node*>(this);
-    on_the_fly_scc_union_node* parent       = _parent.load();
-    on_the_fly_scc_union_node* grand_parent = nullptr;
+    Derived* me           = static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
+    Derived* parent       = _parent.load();
+    Derived* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -26,11 +28,12 @@ on_the_fly_scc_union_node::find_set() const
     return me;
 }
 
+template<typename Derived>
 bool
-on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) const
+BaseNode<Derived>::same_set(Derived const * other) const
 {
-    on_the_fly_scc_union_node* me_repr    = find_set();
-    on_the_fly_scc_union_node* other_repr = other->find_set();
+    Derived const * me_repr    = find_set();
+    Derived const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -43,23 +46,27 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
             return false;
 }
 
+template<typename Derived>
 bool
-on_the_fly_scc_union_node::has_mask(uint64_t mask) const
+BaseNode<Derived>::has_mask(uint64_t mask) const
 {
     return ((_mask.load()) & mask) != 0;
 }
 
+template<typename Derived>
 bool
-on_the_fly_scc_union_node::is_dead() const
+BaseNode<Derived>::is_dead() const
 {
     return _dead.load();
 }
 
-on_the_fly_scc_union_node*
-on_the_fly_scc_union_node::get_node_from_set() const
+template<typename Derived>
+Derived*
+BaseNode<Derived>::get_node_from_set() const
 {
-    on_the_fly_scc_union_node* act  = _start_node.load();
-    on_the_fly_scc_union_node* next = nullptr;
+    Derived const * const self = static_cast<Derived const *>(this);
+    Derived*              act  = _start_node.load();
+    Derived*              next = nullptr;
 
     // grab act node only for yourself
     do
@@ -71,7 +78,7 @@ on_the_fly_scc_union_node::get_node_from_set() const
     } while (!_start_node.compare_exchange_strong(act, next));
 
     // try to pop next node if it's dead
-    if (next->_dead.load() && this->lock())
+    if (next->_dead.load() && self->lock())
     {
         if (act == next)
         {
@@ -82,16 +89,19 @@ on_the_fly_scc_union_node::get_node_from_set() const
         else
             act->_next_node.compare_exchange_strong(next, next->_next_node.load());
 
-        this->unlock();
+        self->unlock();
     }
+
+    return act;
 }
 
+template<typename Derived>
 bool
-on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
+BaseNode<Derived>::union_set(Derived* other)
 {
-    on_the_fly_scc_union_node* me_repr    = find_set();
-    on_the_fly_scc_union_node* other_repr = other->find_set();
-    bool                 success          = false;
+    Derived* me_repr    = find_set();
+    Derived* other_repr = other->find_set();
+    bool     success    = false;
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -118,10 +128,11 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
     return success;
 }
 
+template<typename Derived>
 void
-on_the_fly_scc_union_node::add_mask(uint64_t mask)
+BaseNode<Derived>::add_mask(uint64_t mask)
 {
-    on_the_fly_scc_union_node* repr = find_set();
+    Derived* repr = find_set();
 
     do
     {
@@ -130,37 +141,42 @@ on_the_fly_scc_union_node::add_mask(uint64_t mask)
     } while (!repr->is_top());
 }
 
+template<typename Derived>
 void
-on_the_fly_scc_union_node::mark_as_dead()
+BaseNode<Derived>::mark_as_dead()
 {
     _dead.store(true);
 }
 
+template<typename Derived>
 bool
-on_the_fly_scc_union_node::is_top() const
+BaseNode<Derived>::is_top() const
 {
-    return _parent.load() == this;
+    return _parent.load() == static_cast<Derived const *>(this);
 }
 
+template<typename Derived>
 bool
-on_the_fly_scc_union_node::lock() const
+BaseNode<Derived>::lock() const
 {
     bool expected = false;
     return _spin_lock.compare_exchange_strong(expected, true);
 }
 
+template<typename Derived>
 void
-on_the_fly_scc_union_node::unlock() const
+BaseNode<Derived>::unlock() const
 {
     bool expected = true;
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
+template<typename Derived>
 void
-on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
+BaseNode<Derived>::hook_under_me(Derived* other)
 {
     // update parent
-    other->_parent.compare_exchange_strong(other, this);
+    other->_parent.compare_exchange_strong(other, static_cast<Derived*>(this));
 
     // update size
     _size += other->_size.load();
@@ -173,10 +189,10 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
         _start_node.store(other->_start_node.load());
     else if (other->_start_node.load())
     {
-        on_the_fly_scc_union_node* new_top_1 = _start_node.load();
-        on_the_fly_scc_union_node* new_top_2 = new_top_1->_next_node.load();
-        on_the_fly_scc_union_node* other_1   = other->_start_node.load();
-        on_the_fly_scc_union_node* other_2   = other_1->_next_node.load();
+        Derived* new_top_1 = _start_node.load();
+        Derived* new_top_2 = new_top_1->_next_node.load();
+        Derived* other_1   = other->_start_node.load();
+        Derived* other_2   = other_1->_next_node.load();
 
         // rewire cycle
         new_top_1->_next_node.store(other_2);

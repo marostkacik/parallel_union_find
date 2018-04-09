@@ -4,44 +4,61 @@
 
 namespace parallel_union_find::union_node::lockfree
 {
-class on_the_fly_scc_union_node
+namespace
 {
-public:
-    on_the_fly_scc_union_node();
+    template<typename Derived>
+    class BaseNode
+    {
+    public:
+        BaseNode();
 
-    // observers
-    on_the_fly_scc_union_node* find_set() const;
-    bool                       same_set(on_the_fly_scc_union_node const *) const;
-    bool                       has_mask(uint64_t) const;
-    bool                       is_dead() const;
-    on_the_fly_scc_union_node* get_node_from_set() const;
+        // observers
+        Derived* find_set() const;
+        bool     same_set(Derived const *) const;
+        bool     has_mask(uint64_t) const;
+        bool     is_dead() const;
+        Derived* get_node_from_set() const;
 
-    // mutators
-    bool                       union_set(on_the_fly_scc_union_node*);
-    void                       add_mask(uint64_t);
-    void                       mark_as_dead();
+        // mutators
+        bool     union_set(Derived*);
+        void     add_mask(uint64_t);
+        void     mark_as_dead();
 
-private:
-    bool                       is_top() const;
+    private:
+        bool     is_top() const;
 
-    bool                       lock() const;
-    void                       unlock() const;
+        bool     lock() const;
+        void     unlock() const;
 
-    void                       hook_under_me(on_the_fly_scc_union_node* other);
+        void     hook_under_me(Derived* other);
 
-private:
-    mutable std::atomic<bool>                       _spin_lock;
-    std::atomic<bool>                               _dead;
+    private:
+        mutable std::atomic<bool>     _spin_lock;
+        std::atomic<bool>             _dead;
 
-    // union set data
-    mutable std::atomic<on_the_fly_scc_union_node*> _parent;
-    std::atomic<uint64_t>                           _mask;
-    std::atomic<uint64_t>                           _size;
+        // union set data
+        mutable std::atomic<Derived*> _parent;
+        std::atomic<uint64_t>         _mask;
+        std::atomic<uint64_t>         _size;
 
-    // circular linked list data
-    mutable std::atomic<on_the_fly_scc_union_node*> _start_node;
-    mutable std::atomic<on_the_fly_scc_union_node*> _next_node;
-};
+        // circular linked list data
+        mutable std::atomic<Derived*> _start_node;
+        mutable std::atomic<Derived*> _next_node;
+    };
+
+    template<typename Derived>
+    class Node : public BaseNode<Derived>
+    {
+    };
+
+    template<>
+    class Node<void> : public BaseNode<Node<void>>
+    {
+    };
+}
+
+template<typename Derived>
+using on_the_fly_scc_union_node = Node<Derived>;
 
 #include "on_the_fly_scc_union_node.tpp"
 }
