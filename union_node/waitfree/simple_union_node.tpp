@@ -1,14 +1,16 @@
-simple_union_node::simple_union_node()
-: _dead(false), _parent(this), _mask(0)
+template<typename Derived>
+BaseNode<Derived>::BaseNode()
+: _dead(false), _parent(static_cast<Derived*>(this)), _mask(0)
 {
 }
 
-simple_union_node*
-simple_union_node::find_set() const
+template<typename Derived>
+Derived*
+BaseNode<Derived>::find_set() const
 {
-    simple_union_node* me           = const_cast<simple_union_node*>(this);
-    simple_union_node* parent       = _parent.load();
-    simple_union_node* grand_parent = nullptr;
+    Derived* me           = static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
+    Derived* parent       = _parent.load();
+    Derived* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -26,11 +28,12 @@ simple_union_node::find_set() const
     return me;
 }
 
+template<typename Derived>
 bool
-simple_union_node::same_set(simple_union_node const * other) const
+BaseNode<Derived>::same_set(Derived const * other) const
 {
-    simple_union_node* me_repr    = find_set();
-    simple_union_node* other_repr = other->find_set();
+    Derived const * me_repr    = find_set();
+    Derived const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -43,17 +46,19 @@ simple_union_node::same_set(simple_union_node const * other) const
             return false;
 }
 
+template<typename Derived>
 bool
-simple_union_node::is_dead() const
+BaseNode<Derived>::is_dead() const
 {
     return _dead.load();
 }
 
+template<typename Derived>
 bool
-simple_union_node::union_set(simple_union_node* other)
+BaseNode<Derived>::union_set(Derived* other)
 {
-    simple_union_node* me_repr    = find_set();
-    simple_union_node* other_repr = other->find_set();
+    Derived* me_repr    = find_set();
+    Derived* other_repr = other->find_set();
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -64,14 +69,16 @@ simple_union_node::union_set(simple_union_node* other)
         return me_repr->_parent.compare_exchange_strong(me_repr, other_repr);
 }
 
+template<typename Derived>
 void
-simple_union_node::mark_as_dead()
+BaseNode<Derived>::mark_as_dead()
 {
     _dead.store(false);
 }
 
+template<typename Derived>
 bool
-simple_union_node::is_top() const
+BaseNode<Derived>::is_top() const
 {
-    return _parent.load() == this;
+    return _parent.load() == static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
 }
