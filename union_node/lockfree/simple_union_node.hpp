@@ -12,7 +12,7 @@ namespace
     public:
         BaseNode();
 
-        // observer
+        // observers
         Derived* find_set() const;
         bool     same_set(Derived const *) const;
         bool     has_mask(uint64_t) const;
