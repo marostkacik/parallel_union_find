@@ -117,7 +117,7 @@ template<typename Derived>
 bool
 BaseNode<Derived>::is_top() const
 {
-    return _parent.load() == this;
+    return _parent.load() == static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
 }
 
 template<typename Derived>
