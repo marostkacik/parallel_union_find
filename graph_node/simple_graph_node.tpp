@@ -6,7 +6,7 @@ simple_graph_node_iterator<union_node>::simple_graph_node_iterator(std::vector<s
 
 template<typename union_node>
 bool
-simple_graph_node_iterator<union_node>::operator==(const simple_graph_node_iterator& other) const
+simple_graph_node_iterator<union_node>::operator==(const simple_graph_node_iterator<union_node>& other) const
 {
     return _steps == other._steps;
 }
@@ -33,7 +33,7 @@ simple_graph_node_iterator<union_node>::operator*() const
 
 template<typename union_node>
 simple_graph_node<union_node>::simple_graph_node()
-: _state(0), _neighbors()
+: _state(0), _neighbors(), _label(-1)
 {
 }
 
@@ -56,4 +56,18 @@ void
 simple_graph_node<union_node>::add_son(simple_graph_node<union_node>* node)
 {
     _neighbors.push_back(node);
+}
+
+template<typename union_node>
+void
+simple_graph_node<union_node>::set_label(int label)
+{
+    _label = label;
+}
+
+template<typename union_node>
+int
+simple_graph_node<union_node>::get_label() const
+{
+    return _label;
 }

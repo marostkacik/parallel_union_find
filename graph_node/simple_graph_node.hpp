@@ -39,10 +39,13 @@ public:
 
     std::pair<iterator, iterator> get_random_neighbors_iterators();
     void add_son(simple_graph_node<union_node>*);
+    void set_label(int l);
+    int  get_label() const;
 
 private:
     std::atomic<uint8_t>                        _state;
     std::vector<simple_graph_node<union_node>*> _neighbors;
+    int                                         _label;
 };
 
 #include "simple_graph_node.tpp"
