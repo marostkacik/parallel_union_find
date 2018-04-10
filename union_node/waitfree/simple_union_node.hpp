@@ -6,45 +6,33 @@ namespace parallel_union_find::union_node::waitfree
 {
 namespace
 {
-    template<typename Derived>
-    class BaseNode
+    class Node
     {
     public:
-        BaseNode();
+        Node();
 
         // observers
-        Derived* find_set() const;
-        bool     same_set(Derived const *) const;
-        bool     is_dead() const;
+        Node* find_set() const;
+        bool  same_set(Node const *) const;
+        bool  is_dead() const;
 
         // mutators
-        bool     union_set(Derived*);
-        void     mark_as_dead();
+        bool  union_set(Node*);
+        void  mark_as_dead();
 
     private:
-        bool     is_top() const;
+        bool  is_top() const;
 
     private:
-        std::atomic<bool>                       _dead;
+        std::atomic<bool>          _dead;
 
         // union set data
-        mutable std::atomic<Derived*> _parent;
-        std::atomic<uint64_t>                   _mask;
-    };
-
-    template<typename Derived>
-    class Node : public BaseNode<Derived>
-    {
-    };
-
-    template<>
-    class Node<void> : public BaseNode<Node<void>>
-    {
+        mutable std::atomic<Node*> _parent;
+        std::atomic<uint64_t>      _mask;
     };
 }
 
-template<typename Derived>
-using simple_union_node = Node<Derived>;
+using simple_union_node = Node;
 
 #include "simple_union_node.tpp"
 }

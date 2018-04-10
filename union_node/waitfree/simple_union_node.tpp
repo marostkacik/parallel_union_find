@@ -1,16 +1,14 @@
-template<typename Derived>
-BaseNode<Derived>::BaseNode()
-: _dead(false), _parent(static_cast<Derived*>(this)), _mask(0)
+Node::Node()
+: _dead(false), _parent(this), _mask(0)
 {
 }
 
-template<typename Derived>
-Derived*
-BaseNode<Derived>::find_set() const
+Node*
+Node::find_set() const
 {
-    Derived* me           = static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
-    Derived* parent       = _parent.load();
-    Derived* grand_parent = nullptr;
+    Node* me           = const_cast<Node*>(this);
+    Node* parent       = _parent.load();
+    Node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -28,12 +26,11 @@ BaseNode<Derived>::find_set() const
     return me;
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::same_set(Derived const * other) const
+Node::same_set(Node const * other) const
 {
-    Derived const * me_repr    = find_set();
-    Derived const * other_repr = other->find_set();
+    Node const * me_repr    = find_set();
+    Node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -46,19 +43,17 @@ BaseNode<Derived>::same_set(Derived const * other) const
             return false;
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::is_dead() const
+Node::is_dead() const
 {
     return _dead.load();
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::union_set(Derived* other)
+Node::union_set(Node* other)
 {
-    Derived* me_repr    = find_set();
-    Derived* other_repr = other->find_set();
+    Node* me_repr    = find_set();
+    Node* other_repr = other->find_set();
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -69,16 +64,14 @@ BaseNode<Derived>::union_set(Derived* other)
         return me_repr->_parent.compare_exchange_strong(me_repr, other_repr);
 }
 
-template<typename Derived>
 void
-BaseNode<Derived>::mark_as_dead()
+Node::mark_as_dead()
 {
     _dead.store(false);
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::is_top() const
+Node::is_top() const
 {
-    return _parent.load() == static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
+    return _parent.load() == this;
 }
