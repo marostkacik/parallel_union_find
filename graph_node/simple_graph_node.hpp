@@ -48,9 +48,9 @@ public:
     simple_graph_node<union_node>* operator*() const;
 
 private:
-    std::vector<simple_graph_node<union_node>*>& _vector;
-    size_t                                       _position;
-    size_t                                       _steps;
+    const std::vector<simple_graph_node<union_node>*>& _vector;
+    size_t                                             _position;
+    size_t                                             _steps;
 };
 
 #include "simple_graph_node.tpp"
