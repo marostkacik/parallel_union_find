@@ -1,40 +1,21 @@
 template<typename union_node>
-simple_graph_node_iterator<union_node>::simple_graph_node_iterator(std::vector<simple_graph_node<union_node>*>& vec, size_t pos, size_t steps)
-: _vec(vec), _pos(pos), _steps(steps)
+simple_graph_node<union_node>::simple_graph_node()
+: _state(0), _neighbors(), _label(0)
 {
-}
-
-template<typename union_node>
-bool
-simple_graph_node_iterator<union_node>::operator==(const simple_graph_node_iterator<union_node>& other) const
-{
-    return _steps == other._steps;
-}
-
-template<typename union_node>
-simple_graph_node_iterator<union_node>&
-simple_graph_node_iterator<union_node>::operator++()
-{
-    ++_pos;
-    ++_steps;
-
-    if (_pos == _vec.size())
-        _pos = 0;
-
-    return *this;
 }
 
 template<typename union_node>
 simple_graph_node<union_node>*
-simple_graph_node_iterator<union_node>::operator*() const
+simple_graph_node<union_node>::find_set() const
 {
-    return _vec.at(_pos);
+    return static_cast<simple_graph_node<union_node>*>(union_node::find_set());
 }
 
 template<typename union_node>
-simple_graph_node<union_node>::simple_graph_node()
-: _state(0), _neighbors(), _label(-1)
+simple_graph_node<union_node>*
+simple_graph_node<union_node>::get_node_from_set() const
 {
+    return static_cast<simple_graph_node<union_node>*>(union_node::get_node_from_set());
 }
 
 template<typename union_node>
@@ -60,14 +41,47 @@ simple_graph_node<union_node>::add_son(simple_graph_node<union_node>* node)
 
 template<typename union_node>
 void
-simple_graph_node<union_node>::set_label(int label)
+simple_graph_node<union_node>::set_label(size_t label)
 {
     _label = label;
 }
 
 template<typename union_node>
-int
+size_t
 simple_graph_node<union_node>::get_label() const
 {
     return _label;
+}
+
+template<typename union_node>
+simple_graph_node_iterator<union_node>::simple_graph_node_iterator(const std::vector<simple_graph_node<union_node>*>& vector, size_t position, size_t steps)
+: _vector(vector), _position(position), _steps(steps)
+{
+}
+
+template<typename union_node>
+bool
+simple_graph_node_iterator<union_node>::operator==(const simple_graph_node_iterator<union_node>& other) const
+{
+    return _steps == other._steps;
+}
+
+template<typename union_node>
+simple_graph_node_iterator<union_node>&
+simple_graph_node_iterator<union_node>::operator++()
+{
+    ++_position;
+    ++_steps;
+
+    if (_position == _vector.size())
+        _position = 0;
+
+    return *this;
+}
+
+template<typename union_node>
+simple_graph_node<union_node>*
+simple_graph_node_iterator<union_node>::operator*() const
+{
+    return _vector.at(_position);
 }
