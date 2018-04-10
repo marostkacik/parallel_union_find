@@ -1,16 +1,14 @@
-template<typename Derived>
-BaseNode<Derived>::BaseNode()
-: _spin_lock(false), _dead(false), _parent(static_cast<Derived*>(this)), _mask(0), _size(1)
+Node::Node()
+: _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1)
 {
 }
 
-template<typename Derived>
-Derived*
-BaseNode<Derived>::find_set() const
+Node*
+Node::find_set() const
 {
-    Derived* me           = static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
-    Derived* parent       = _parent.load();
-    Derived* grand_parent = nullptr;
+    Node* me           = const_cast<Node*>(this);
+    Node* parent       = _parent.load();
+    Node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -28,12 +26,11 @@ BaseNode<Derived>::find_set() const
     return me;
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::same_set(Derived const * other) const
+Node::same_set(Node const * other) const
 {
-    Derived const * me_repr    = find_set();
-    Derived const * other_repr = other->find_set();
+    Node const * me_repr    = find_set();
+    Node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -46,27 +43,24 @@ BaseNode<Derived>::same_set(Derived const * other) const
             return false;
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::has_mask(uint64_t mask) const
+Node::has_mask(uint64_t mask) const
 {
     return ((_mask.load()) & mask) != 0;
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::is_dead() const
+Node::is_dead() const
 {
     return _dead.load();
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::union_set(Derived* other)
+Node::union_set(Node* other)
 {
-    Derived* me_repr    = find_set();
-    Derived* other_repr = other->find_set();
-    bool     success    = false;
+    Node* me_repr    = find_set();
+    Node* other_repr = other->find_set();
+    bool  success    = false;
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -93,11 +87,10 @@ BaseNode<Derived>::union_set(Derived* other)
     return success;
 }
 
-template<typename Derived>
 void
-BaseNode<Derived>::add_mask(uint64_t mask)
+Node::add_mask(uint64_t mask)
 {
-    Derived* repr = find_set();
+    Node* repr = find_set();
 
     do
     {
@@ -106,42 +99,37 @@ BaseNode<Derived>::add_mask(uint64_t mask)
     } while (!repr->is_top());
 }
 
-template<typename Derived>
 void
-BaseNode<Derived>::mark_as_dead()
+Node::mark_as_dead()
 {
     _dead.store(true);
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::is_top() const
+Node::is_top() const
 {
-    return _parent.load() == static_cast<Derived*>(const_cast<BaseNode<Derived>*>(this));
+    return _parent.load() == this;
 }
 
-template<typename Derived>
 bool
-BaseNode<Derived>::lock() const
+Node::lock() const
 {
     bool expected = false;
     return _spin_lock.compare_exchange_strong(expected, true);
 }
 
-template<typename Derived>
 void
-BaseNode<Derived>::unlock() const
+Node::unlock() const
 {
     bool expected = true;
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
-template<typename Derived>
 void
-BaseNode<Derived>::hook_under_me(Derived* other)
+Node::hook_under_me(Node* other)
 {
     // update parent
-    other->_parent.compare_exchange_strong(other, static_cast<Derived*>(this));
+    other->_parent.compare_exchange_strong(other, this);
 
     // update size
     _size += other->_size.load();
