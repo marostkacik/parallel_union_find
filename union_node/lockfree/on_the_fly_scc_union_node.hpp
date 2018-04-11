@@ -16,12 +16,14 @@ namespace
         bool  same_set(Node const *) const;
         bool  has_mask(uint64_t) const;
         bool  is_dead() const;
+        bool  is_done() const;
         Node* get_node_from_set() const;
 
         // mutators
         bool  union_set(Node*);
         void  add_mask(uint64_t);
         void  mark_as_dead();
+        void  mark_as_done();
 
     private:
         bool  is_top() const;
@@ -34,6 +36,7 @@ namespace
     private:
         mutable std::atomic<bool>  _spin_lock;
         std::atomic<bool>          _dead;
+        std::atomic<bool>          _done;
 
         // union set data
         mutable std::atomic<Node*> _parent;

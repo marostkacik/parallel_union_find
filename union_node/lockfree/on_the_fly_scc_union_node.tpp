@@ -1,5 +1,5 @@
 Node::Node()
-: _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
+: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
 {
 }
 
@@ -55,6 +55,12 @@ Node::is_dead() const
     return _dead.load();
 }
 
+bool
+Node::is_done() const
+{
+    return _done.load();
+}
+
 Node*
 Node::get_node_from_set() const
 {
@@ -70,20 +76,21 @@ Node::get_node_from_set() const
             next = act->_next_node.load();
     } while (!_start_node.compare_exchange_strong(act, next));
 
-    // try to pop next node if it's dead
-    if (next->_dead.load() && this->lock())
-    {
-        if (act == next)
+    // try to pop next node if it's done
+    if (next->_done.load())
+        if (this->lock())
         {
-            // check again whether no new node was added
-            if (_start_node.load() == _start_node.load()->_next_node.load() && _start_node.load()->_dead.load())
-                _start_node.store(nullptr);
-        }
-        else
-            act->_next_node.compare_exchange_strong(next, next->_next_node.load());
+            if (act == next)
+            {
+                // check again whether no new node was added
+                if (_start_node.load() == _start_node.load()->_next_node.load() && _start_node.load()->_dead.load())
+                    _start_node.store(nullptr);
+            }
+            else
+                act->_next_node.compare_exchange_strong(next, next->_next_node.load());
 
-        this->unlock();
-    }
+            this->unlock();
+        }
 
     return act;
 }
@@ -136,6 +143,12 @@ void
 Node::mark_as_dead()
 {
     _dead.store(true);
+}
+
+void
+Node::mark_as_done()
+{
+    _done.store(true);
 }
 
 bool
