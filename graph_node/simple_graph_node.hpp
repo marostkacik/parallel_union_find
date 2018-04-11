@@ -20,9 +20,8 @@ public:
 public:
     simple_graph_node();
 
-    // static cast union_node's methods which return pointer
+    // static cast union_node's method which return pointer
     simple_graph_node<union_node>* find_set() const;
-    simple_graph_node<union_node>* get_node_from_set() const;
 
     // required methods for algorithm
     std::pair<iterator, iterator>  get_random_neighbors_iterators();

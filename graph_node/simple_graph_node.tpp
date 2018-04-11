@@ -12,13 +12,6 @@ simple_graph_node<union_node>::find_set() const
 }
 
 template<typename union_node>
-simple_graph_node<union_node>*
-simple_graph_node<union_node>::get_node_from_set() const
-{
-    return static_cast<simple_graph_node<union_node>*>(union_node::get_node_from_set());
-}
-
-template<typename union_node>
 std::pair<typename simple_graph_node<union_node>::iterator, typename simple_graph_node<union_node>::iterator>
 simple_graph_node<union_node>::get_random_neighbors_iterators()
 {
