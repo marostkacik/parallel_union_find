@@ -15,6 +15,7 @@ class simple_graph_node : public union_node
 {
 public:
     using iterator = simple_graph_node_iterator<union_node>;
+    friend iterator;
 
 public:
     simple_graph_node();
@@ -32,7 +33,7 @@ public:
     size_t                         get_label() const;
 
 private:
-    std::atomic<uint8_t>                        _state;
+    std::atomic<size_t>                         _state;
     std::vector<simple_graph_node<union_node>*> _neighbors;
     size_t                                      _label;
 };
@@ -41,16 +42,16 @@ template<typename union_node>
 class simple_graph_node_iterator
 {
 public:
-    simple_graph_node_iterator(const std::vector<simple_graph_node<union_node>*>& vector, size_t position, size_t steps);
+    simple_graph_node_iterator(simple_graph_node<union_node>& sgn, size_t steps);
 
     bool                           operator==(const simple_graph_node_iterator<union_node>& other) const;
     simple_graph_node_iterator&    operator++();
     simple_graph_node<union_node>* operator*() const;
 
 private:
-    const std::vector<simple_graph_node<union_node>*>& _vector;
-    size_t                                             _position;
-    size_t                                             _steps;
+    simple_graph_node<union_node>& _sgn;
+    size_t                         _next_pos;
+    size_t                         _steps;
 };
 
 #include "simple_graph_node.tpp"
