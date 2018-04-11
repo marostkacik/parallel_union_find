@@ -99,7 +99,7 @@ Node::add_mask(uint64_t mask)
     } while (!repr->is_top());
 }
 
-void
+bool
 Node::mark_as_dead()
 {
     bool expected = false;
