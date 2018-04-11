@@ -18,7 +18,7 @@ namespace
 
         // mutators
         bool  union_set(Node*);
-        void  mark_as_dead();
+        bool  mark_as_dead();
 
     private:
         bool  is_top() const;

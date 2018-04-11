@@ -64,10 +64,11 @@ Node::union_set(Node* other)
         return me_repr->_parent.compare_exchange_strong(me_repr, other_repr);
 }
 
-void
+bool
 Node::mark_as_dead()
 {
-    _dead.store(false);
+    bool expected = false;
+    _dead.compare_exchange_strong(expected, true);
 }
 
 bool
