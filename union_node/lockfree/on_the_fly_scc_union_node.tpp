@@ -139,16 +139,18 @@ Node::add_mask(uint64_t mask)
     } while (!repr->is_top());
 }
 
-void
+bool
 Node::mark_as_dead()
 {
-    _dead.store(true);
+    bool expected = false;
+    return _dead.compare_exchange_strong(expected, true);
 }
 
-void
+bool
 Node::mark_as_done()
 {
-    _done.store(true);
+    bool expected = false;
+    return _dead.compare_exchange_strong(expected, true);
 }
 
 bool
