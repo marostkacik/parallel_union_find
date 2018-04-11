@@ -20,7 +20,7 @@ namespace
         // mutators
         bool  union_set(Node*);
         void  add_mask(uint64_t);
-        void  mark_as_dead();
+        bool  mark_as_dead();
 
     private:
         bool  is_top() const;

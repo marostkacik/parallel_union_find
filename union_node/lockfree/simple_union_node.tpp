@@ -102,7 +102,8 @@ Node::add_mask(uint64_t mask)
 void
 Node::mark_as_dead()
 {
-    _dead.store(true);
+    bool expected = false;
+    return _dead.compare_exchange_strong(expected, true);
 }
 
 bool
