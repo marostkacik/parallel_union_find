@@ -20,52 +20,52 @@ struct on_the_fly_scc_union_node
     // circular linked list data
     mutable std::atomic<on_the_fly_scc_union_node*> _start_node;
     mutable std::atomic<on_the_fly_scc_union_node*> _next_node;
+
+    // observers
+    template<typename Node>
+    static Node* find_set(Node const *);
+
+    template<typename Node>
+    static bool same_set(Node const *, Node const *);
+
+    template<typename Node>
+    static bool has_mask(Node const *, uint64_t);
+
+    template<typename Node>
+    static bool is_dead(Node const *);
+
+    template<typename Node>
+    static bool is_done(Node const *);
+
+    template<typename Node>
+    static Node* get_node_from_set(Node const *);
+
+    // mutators
+    template<typename Node>
+    static bool union_set(Node*, Node*);
+
+    template<typename Node>
+    static void add_mask(Node*, uint64_t);
+
+    template<typename Node>
+    static bool mark_as_dead(Node*);
+
+    template<typename Node>
+    static bool mark_as_done(Node*);
+
+    // helper functions
+    template<typename Node>
+    static bool is_top(Node const *);
+
+    template<typename Node>
+    static bool lock(Node const *);
+
+    template<typename Node>
+    static void unlock(Node const *);
+
+    template<typename Node>
+    static void hook_under_me(Node*, Node*);
 };
-
-// observers
-template<typename Node>
-Node* find_set(Node const *);
-
-template<typename Node>
-bool same_set(Node const *, Node const *);
-
-template<typename Node>
-bool has_mask(Node const *, uint64_t);
-
-template<typename Node>
-bool is_dead(Node const *);
-
-template<typename Node>
-bool is_done(Node const *);
-
-template<typename Node>
-Node* get_node_from_set(Node const *);
-
-// mutators
-template<typename Node>
-bool union_set(Node*, Node*);
-
-template<typename Node>
-void add_mask(Node*, uint64_t);
-
-template<typename Node>
-bool mark_as_dead(Node*);
-
-template<typename Node>
-bool mark_as_done(Node*);
-
-// helper functions
-template<typename Node>
-bool is_top(Node const *);
-
-template<typename Node>
-bool lock(Node const *);
-
-template<typename Node>
-void unlock(Node const *);
-
-template<typename Node>
-void hook_under_me(Node*, Node*);
 
 #include "on_the_fly_scc_union_node.tpp"
 }

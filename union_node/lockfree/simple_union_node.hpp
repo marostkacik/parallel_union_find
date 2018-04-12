@@ -4,6 +4,23 @@
 
 namespace parallel_union_find::union_node::lockfree
 {
+struct simple_union_node
+{
+    simple_union_node();
+
+    mutable std::atomic<bool>  _spin_lock;
+    std::atomic<bool>          _dead;
+
+    // union set data
+    mutable std::atomic<Node*> _parent;
+    std::atomic<uint64_t>      _mask;
+    std::atomic<uint64_t>      _size;
+};
+
+// observers
+template<typename Node>
+
+
 namespace
 {
     class Node

@@ -5,7 +5,7 @@ on_the_fly_scc_union_node::on_the_fly_scc_union_node()
 
 template<typename Node>
 Node*
-find_set(Node const * obj)
+on_the_fly_scc_union_node::find_set(Node const * obj)
 {
     Node* me           = const_cast<Node*>(obj);
     Node* parent       = obj->_parent.load();
@@ -29,7 +29,7 @@ find_set(Node const * obj)
 
 template<typename Node>
 bool
-same_set(Node const * obj, Node const * other)
+on_the_fly_scc_union_node::same_set(Node const * obj, Node const * other)
 {
     Node const * me_repr    = find_set(obj);
     Node const * other_repr = find_set(other);
@@ -47,28 +47,28 @@ same_set(Node const * obj, Node const * other)
 
 template<typename Node>
 bool
-has_mask(Node const * obj, uint64_t mask)
+on_the_fly_scc_union_node::has_mask(Node const * obj, uint64_t mask)
 {
     return ((obj->_mask.load()) & mask) != 0;
 }
 
 template<typename Node>
 bool
-is_dead(Node const * obj)
+on_the_fly_scc_union_node::is_dead(Node const * obj)
 {
     return obj->_dead.load();
 }
 
 template<typename Node>
 bool
-is_done(Node const * obj)
+on_the_fly_scc_union_node::is_done(Node const * obj)
 {
     return obj->_done.load();
 }
 
 template<typename Node>
 Node*
-get_node_from_set(Node const * obj)
+on_the_fly_scc_union_node::get_node_from_set(Node const * obj)
 {
     Node* act  = obj->_start_node.load();
     Node* next = nullptr;
@@ -103,7 +103,7 @@ get_node_from_set(Node const * obj)
 
 template<typename Node>
 bool
-union_set(Node* obj, Node* other)
+on_the_fly_scc_union_node::union_set(Node* obj, Node* other)
 {
     Node* me_repr    = find_set(obj);
     Node* other_repr = find_set(other);
@@ -136,7 +136,7 @@ union_set(Node* obj, Node* other)
 
 template<typename Node>
 void
-add_mask(Node* obj, uint64_t mask)
+on_the_fly_scc_union_node::add_mask(Node* obj, uint64_t mask)
 {
     Node* repr = find_set(obj);
 
@@ -149,7 +149,7 @@ add_mask(Node* obj, uint64_t mask)
 
 template<typename Node>
 bool
-mark_as_dead(Node* obj)
+on_the_fly_scc_union_node::mark_as_dead(Node* obj)
 {
     bool expected = false;
     return obj->_dead.compare_exchange_strong(expected, true);
@@ -157,7 +157,7 @@ mark_as_dead(Node* obj)
 
 template<typename Node>
 bool
-mark_as_done(Node* obj)
+on_the_fly_scc_union_node::mark_as_done(Node* obj)
 {
     bool expected = false;
     return obj->_dead.compare_exchange_strong(expected, true);
@@ -165,14 +165,14 @@ mark_as_done(Node* obj)
 
 template<typename Node>
 bool
-is_top(Node const * obj)
+on_the_fly_scc_union_node::is_top(Node const * obj)
 {
     return obj->_parent.load() == obj;
 }
 
 template<typename Node>
 bool
-lock(Node const * obj)
+on_the_fly_scc_union_node::lock(Node const * obj)
 {
     bool expected = false;
     return obj->_spin_lock.compare_exchange_strong(expected, true);
@@ -180,7 +180,7 @@ lock(Node const * obj)
 
 template<typename Node>
 void
-unlock(Node const * obj)
+on_the_fly_scc_union_node::unlock(Node const * obj)
 {
     bool expected = true;
     obj->_spin_lock.compare_exchange_strong(expected, false);
@@ -188,7 +188,7 @@ unlock(Node const * obj)
 
 template<typename Node>
 void
-hook_under_me(Node* obj, Node* other)
+on_the_fly_scc_union_node::hook_under_me(Node* obj, Node* other)
 {
     // update parent
     other->_parent.compare_exchange_strong(other, obj);
