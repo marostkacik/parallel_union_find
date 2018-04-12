@@ -4,44 +4,49 @@
 
 namespace parallel_union_find::union_node::lockfree
 {
-namespace
+struct simple_union_node
 {
-    class Node
-    {
-    public:
-        Node();
+public:
+    simple_union_node();
 
-        // observers
-        Node* find_set() const;
-        bool  same_set(Node const *) const;
-        bool  has_mask(uint64_t) const;
-        bool  is_dead() const;
+    // observers
+    template<typename Node>
+    static Node* find_set(Node const *);
+    template<typename Node>
+    static bool  same_set(Node const *, Node const *);
+    template<typename Node>
+    static bool  has_mask(Node const *, uint64_t);
+    template<typename Node>
+    static bool  is_dead(Node const *);
 
-        // mutators
-        bool  union_set(Node*);
-        void  add_mask(uint64_t);
-        bool  mark_as_dead();
+    // mutators
+    template<typename Node>
+    static bool  union_set(Node*, Node*);
+    template<typename Node>
+    static void  add_mask(Node*, uint64_t);
+    template<typename Node>
+    static bool  mark_as_dead(Node*);
 
-    private:
-        bool  is_top() const;
+private:
+    // helper functions
+    template<typename Node>
+    static bool  is_top(Node const *);
+    template<typename Node>
+    static bool  lock(Node const *);
+    template<typename Node>
+    static void  unlock(Node const *);
+    template<typename Node>
+    static void  hook_under_me(Node*, Node*);
 
-        bool  lock() const;
-        void  unlock() const;
+private:
+    mutable std::atomic<bool>               _spin_lock;
+    std::atomic<bool>                       _dead;
 
-        void  hook_under_me(Node* other);
-
-    private:
-        mutable std::atomic<bool>  _spin_lock;
-        std::atomic<bool>          _dead;
-
-        // union set data
-        mutable std::atomic<Node*> _parent;
-        std::atomic<uint64_t>      _mask;
-        std::atomic<uint64_t>      _size;
-    };
-}
-
-using simple_union_node = Node;
+    // union set data
+    mutable std::atomic<simple_union_node*> _parent;
+    std::atomic<uint64_t>                   _mask;
+    std::atomic<uint64_t>                   _size;
+};
 
 #include "simple_union_node.tpp"
 }
