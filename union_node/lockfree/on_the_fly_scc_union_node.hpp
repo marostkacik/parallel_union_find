@@ -6,20 +6,8 @@ namespace parallel_union_find::union_node::lockfree
 {
 struct on_the_fly_scc_union_node
 {
+public:
     on_the_fly_scc_union_node();
-
-    mutable std::atomic<bool>                       _spin_lock;
-    std::atomic<bool>                               _dead;
-    std::atomic<bool>                               _done;
-
-    // union set data
-    mutable std::atomic<on_the_fly_scc_union_node*> _parent;
-    std::atomic<uint64_t>                           _mask;
-    std::atomic<uint64_t>                           _size;
-
-    // circular linked list data
-    mutable std::atomic<on_the_fly_scc_union_node*> _start_node;
-    mutable std::atomic<on_the_fly_scc_union_node*> _next_node;
 
     // observers
     template<typename Node>
@@ -53,6 +41,7 @@ struct on_the_fly_scc_union_node
     template<typename Node>
     static bool mark_as_done(Node*);
 
+private:
     // helper functions
     template<typename Node>
     static bool is_top(Node const *);
@@ -65,6 +54,20 @@ struct on_the_fly_scc_union_node
 
     template<typename Node>
     static void hook_under_me(Node*, Node*);
+
+private:
+    mutable std::atomic<bool>                       _spin_lock;
+    std::atomic<bool>                               _dead;
+    std::atomic<bool>                               _done;
+
+    // union set data
+    mutable std::atomic<on_the_fly_scc_union_node*> _parent;
+    std::atomic<uint64_t>                           _mask;
+    std::atomic<uint64_t>                           _size;
+
+    // circular linked list data
+    mutable std::atomic<on_the_fly_scc_union_node*> _start_node;
+    mutable std::atomic<on_the_fly_scc_union_node*> _next_node;
 };
 
 #include "on_the_fly_scc_union_node.tpp"
