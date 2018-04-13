@@ -1,14 +1,14 @@
-Node::Node()
-: _dead(false), _parent(this), _mask(0)
+simple_union_node::simple_union_node()
+: _dead(false), _parent(this)
 {
 }
 
-Node*
-Node::find_set() const
+simple_union_node*
+simple_union_node::find_set() const
 {
-    Node* me           = const_cast<Node*>(this);
-    Node* parent       = _parent.load();
-    Node* grand_parent = nullptr;
+    simple_union_node* me           = const_cast<simple_union_node*>(this);
+    simple_union_node* parent       = _parent.load();
+    simple_union_node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ Node::find_set() const
 }
 
 bool
-Node::same_set(Node const * other) const
+simple_union_node::same_set(simple_union_node const * other) const
 {
-    Node const * me_repr    = find_set();
-    Node const * other_repr = other->find_set();
+    simple_union_node const * me_repr    = find_set();
+    simple_union_node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -44,16 +44,16 @@ Node::same_set(Node const * other) const
 }
 
 bool
-Node::is_dead() const
+simple_union_node::is_dead() const
 {
     return _dead.load();
 }
 
 bool
-Node::union_set(Node* other)
+simple_union_node::union_set(simple_union_node* other)
 {
-    Node* me_repr    = find_set();
-    Node* other_repr = other->find_set();
+    simple_union_node* me_repr    = find_set();
+    simple_union_node* other_repr = other->find_set();
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -65,14 +65,14 @@ Node::union_set(Node* other)
 }
 
 bool
-Node::mark_as_dead()
+simple_union_node::mark_as_dead()
 {
     bool expected = false;
     _dead.compare_exchange_strong(expected, true);
 }
 
 bool
-Node::is_top() const
+simple_union_node::is_top() const
 {
     return _parent.load() == this;
 }
