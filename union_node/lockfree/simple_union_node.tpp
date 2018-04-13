@@ -1,14 +1,14 @@
-Node::Node()
+simple_union_node::simple_union_node()
 : _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1)
 {
 }
 
-Node*
-Node::find_set() const
+simple_union_node*
+simple_union_node::find_set() const
 {
-    Node* me           = const_cast<Node*>(this);
-    Node* parent       = _parent.load();
-    Node* grand_parent = nullptr;
+    simple_union_node* me           = const_cast<simple_union_node*>(this);
+    simple_union_node* parent       = _parent.load();
+    simple_union_node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ Node::find_set() const
 }
 
 bool
-Node::same_set(Node const * other) const
+simple_union_node::same_set(simple_union_node const * other) const
 {
-    Node const * me_repr    = find_set();
-    Node const * other_repr = other->find_set();
+    simple_union_node const * me_repr    = find_set();
+    simple_union_node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -44,23 +44,23 @@ Node::same_set(Node const * other) const
 }
 
 bool
-Node::has_mask(uint64_t mask) const
+simple_union_node::has_mask(uint64_t mask) const
 {
     return ((_mask.load()) & mask) != 0;
 }
 
 bool
-Node::is_dead() const
+simple_union_node::is_dead() const
 {
     return _dead.load();
 }
 
 bool
-Node::union_set(Node* other)
+simple_union_node::union_set(simple_union_node* other)
 {
-    Node* me_repr    = find_set();
-    Node* other_repr = other->find_set();
-    bool  success    = false;
+    simple_union_node* me_repr    = find_set();
+    simple_union_node* other_repr = other->find_set();
+    bool  success                 = false;
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -88,9 +88,9 @@ Node::union_set(Node* other)
 }
 
 void
-Node::add_mask(uint64_t mask)
+simple_union_node::add_mask(uint64_t mask)
 {
-    Node* repr = find_set();
+    simple_union_node* repr = find_set();
 
     do
     {
@@ -100,34 +100,34 @@ Node::add_mask(uint64_t mask)
 }
 
 bool
-Node::mark_as_dead()
+simple_union_node::mark_as_dead()
 {
     bool expected = false;
     return _dead.compare_exchange_strong(expected, true);
 }
 
 bool
-Node::is_top() const
+simple_union_node::is_top() const
 {
     return _parent.load() == this;
 }
 
 bool
-Node::lock() const
+simple_union_node::lock() const
 {
     bool expected = false;
     return _spin_lock.compare_exchange_strong(expected, true);
 }
 
 void
-Node::unlock() const
+simple_union_node::unlock() const
 {
     bool expected = true;
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
 void
-Node::hook_under_me(Node* other)
+simple_union_node::hook_under_me(simple_union_node* other)
 {
     // update parent
     other->_parent.compare_exchange_strong(other, this);
