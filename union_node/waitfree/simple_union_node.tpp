@@ -1,14 +1,13 @@
-simple_union_node::simple_union_node()
-: _dead(false), _parent(this)
+Node::Node()
+: _dead(false), _parent(this), _mask(0)
 {
 }
 
-template<typename Node>
 Node*
-simple_union_node::find_set(Node const * obj)
+Node::find_set() const
 {
-    Node* me           = const_cast<Node*>(obj);
-    Node* parent       = obj->_parent.load();
+    Node* me           = const_cast<Node*>(this);
+    Node* parent       = _parent.load();
     Node* grand_parent = nullptr;
 
     while (me != parent)
@@ -27,39 +26,36 @@ simple_union_node::find_set(Node const * obj)
     return me;
 }
 
-template<typename Node>
 bool
-simple_union_node::same_set(Node const * obj, Node const * other)
+Node::same_set(Node const * other) const
 {
-    Node const * me_repr    = find_set(obj);
-    Node const * other_repr = find_set(other);
+    Node const * me_repr    = find_set();
+    Node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
             return true;
-        else if (!is_top(me_repr))
-            me_repr = find_set(me_repr);
-        else if (!is_top(other_repr))
-            other_repr = find_set(other_repr);
+        else if (!me_repr->is_top())
+            me_repr = me_repr->find_set();
+        else if (!other_repr->is_top())
+            other_repr = other_repr->find_set();
         else
             return false;
 }
 
-template<typename Node>
 bool
-simple_union_node::is_dead(Node const * obj)
+Node::is_dead() const
 {
-    return obj->_dead.load();
+    return _dead.load();
 }
 
-template<typename Node>
 bool
-simple_union_node::union_set(Node* obj, Node* other)
+Node::union_set(Node* other)
 {
-    Node* me_repr    = find_set(obj);
-    Node* other_repr = find_set(other);
+    Node* me_repr    = find_set();
+    Node* other_repr = other->find_set();
 
-    if (same_set(me_repr, other_repr))
+    if (me_repr->same_set(other_repr))
         return true;
 
     if (me_repr < other_repr)
@@ -68,17 +64,15 @@ simple_union_node::union_set(Node* obj, Node* other)
         return me_repr->_parent.compare_exchange_strong(me_repr, other_repr);
 }
 
-template<typename Node>
 bool
-simple_union_node::mark_as_dead(Node* obj)
+Node::mark_as_dead()
 {
     bool expected = false;
-    return obj->_dead.compare_exchange_strong(expected, true);
+    _dead.compare_exchange_strong(expected, true);
 }
 
-template<typename Node>
 bool
-simple_union_node::is_top(Node const * obj)
+Node::is_top() const
 {
-    return obj->_parent.load() == obj;
+    return _parent.load() == this;
 }

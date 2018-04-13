@@ -4,36 +4,35 @@
 
 namespace parallel_union_find::union_node::waitfree
 {
-struct simple_union_node
+namespace
 {
-public:
-    simple_union_node();
+    class Node
+    {
+    public:
+        Node();
 
-    // observers
-    template<typename Node>
-    static Node* find_set(Node const *);
-    template<typename Node>
-    static bool  same_set(Node const *, Node const *);
-    template<typename Node>
-    static bool  is_dead(Node const *);
+        // observers
+        Node* find_set() const;
+        bool  same_set(Node const *) const;
+        bool  is_dead() const;
 
-    // mutators
-    template<typename Node>
-    static bool  union_set(Node*, Node*);
-    template<typename Node>
-    static bool  mark_as_dead(Node*);
+        // mutators
+        bool  union_set(Node*);
+        bool  mark_as_dead();
 
-private:
-    // helper functions
-    template<typename Node>
-    static bool  is_top(Node const *);
+    private:
+        bool  is_top() const;
 
-private:
-    std::atomic<bool>                       _dead;
+    private:
+        std::atomic<bool>          _dead;
 
-    // union set data
-    mutable std::atomic<simple_union_node*> _parent;
-};
+        // union set data
+        mutable std::atomic<Node*> _parent;
+        std::atomic<uint64_t>      _mask;
+    };
+}
+
+using simple_union_node = Node;
 
 #include "simple_union_node.tpp"
 }

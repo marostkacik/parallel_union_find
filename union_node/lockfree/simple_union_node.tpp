@@ -1,14 +1,13 @@
-simple_union_node::simple_union_node()
+Node::Node()
 : _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1)
 {
 }
 
-template<typename Node>
 Node*
-simple_union_node::find_set(Node const * obj)
+Node::find_set() const
 {
-    Node* me           = const_cast<Node*>(obj);
-    Node* parent       = obj->_parent.load();
+    Node* me           = const_cast<Node*>(this);
+    Node* parent       = _parent.load();
     Node* grand_parent = nullptr;
 
     while (me != parent)
@@ -27,125 +26,115 @@ simple_union_node::find_set(Node const * obj)
     return me;
 }
 
-template<typename Node>
 bool
-simple_union_node::same_set(Node const * obj, Node const * other)
+Node::same_set(Node const * other) const
 {
-    Node const * me_repr    = find_set(obj);
-    Node const * other_repr = find_set(other);
+    Node const * me_repr    = find_set();
+    Node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
             return true;
-        else if (!is_top(me_repr))
-            me_repr = find_set(me_repr);
-        else if (!is_top(other_repr))
-            other_repr = find_set(other_repr);
+        else if (!me_repr->is_top())
+            me_repr = me_repr->find_set();
+        else if (!other_repr->is_top())
+            other_repr = other_repr->find_set();
         else
             return false;
 }
 
-template<typename Node>
 bool
-simple_union_node::has_mask(Node const * obj, uint64_t mask)
+Node::has_mask(uint64_t mask) const
 {
-    return ((obj->_mask.load()) & mask) != 0;
+    return ((_mask.load()) & mask) != 0;
 }
 
-template<typename Node>
 bool
-simple_union_node::is_dead(Node const * obj)
+Node::is_dead() const
 {
-    return obj->_dead.load();
+    return _dead.load();
 }
 
-template<typename Node>
 bool
-simple_union_node::union_set(Node* obj, Node* other)
+Node::union_set(Node* other)
 {
-    Node* me_repr    = find_set(obj);
-    Node* other_repr = find_set(other);
+    Node* me_repr    = find_set();
+    Node* other_repr = other->find_set();
     bool  success    = false;
 
-    if (same_set(me_repr, other_repr))
+    if (me_repr->same_set(other_repr))
         return true;
 
-    if (lock(me_repr))
+    if (me_repr->lock())
     {
-        if (lock(other_repr))
+        if (other_repr->lock())
         {
             // now me_repr and other_repr cannot be changed
-            if (is_top(me_repr) && is_top(other_repr))
+            if (me_repr->is_top() && other_repr->is_top())
             {
                 if (me_repr->_size.load() >= other_repr->_size.load())
-                    hook_under_me(me_repr, other_repr);
+                    me_repr->hook_under_me(other_repr);
                 else
-                    hook_under_me(other_repr, me_repr);
+                    other_repr->hook_under_me(me_repr);
 
                 success = true;
             }
-            unlock(other_repr);
+            other_repr->unlock();
         }
-        unlock(me_repr);
+        me_repr->unlock();
     }
 
     return success;
 }
 
-template<typename Node>
 void
-simple_union_node::add_mask(Node* obj, uint64_t mask)
+Node::add_mask(uint64_t mask)
 {
-    Node* repr = find_set(obj);
+    Node* repr = find_set();
 
     do
     {
-        repr = find_set(repr);
+        repr = repr->find_set();
         repr->_mask.fetch_or(mask);
-    } while (!is_top(repr));
+    } while (!repr->is_top());
 }
 
-template<typename Node>
 bool
-simple_union_node::mark_as_dead(Node* obj)
+Node::mark_as_dead()
 {
     bool expected = false;
-    return obj->_dead.compare_exchange_strong(expected, true);
+    return _dead.compare_exchange_strong(expected, true);
 }
 
-template<typename Node>
 bool
-simple_union_node::is_top(Node const * obj)
+Node::is_top() const
 {
-    return obj->_parent.load() == obj;
+    return _parent.load() == this;
 }
 
-template<typename Node>
 bool
-simple_union_node::lock(Node const * obj)
+Node::lock() const
 {
     bool expected = false;
-    return obj->_spin_lock.compare_exchange_strong(expected, true);
+    return _spin_lock.compare_exchange_strong(expected, true);
 }
 
-template<typename Node>
 void
-simple_union_node::unlock(Node const * obj)
+Node::unlock() const
 {
     bool expected = true;
-    obj->_spin_lock.compare_exchange_strong(expected, false);
+    _spin_lock.compare_exchange_strong(expected, false);
 }
 
-template<typename Node>
 void
-simple_union_node::hook_under_me(Node* obj, Node* other)
+Node::hook_under_me(Node* other)
 {
     // update parent
-    other->_parent.compare_exchange_strong(other, obj);
+    other->_parent.compare_exchange_strong(other, this);
 
     // update size
-    obj->_size += other->_size.load();
+    _size += other->_size.load();
 
     // update mask
-    obj->_mask.fetch_or(other->_mask.load());
+    _mask.fetch_or(other->_mask.load());
 }
