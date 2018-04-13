@@ -1,14 +1,14 @@
-Node::Node()
+on_the_fly_scc_union_node::on_the_fly_scc_union_node()
 : _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
 {
 }
 
-Node*
-Node::find_set() const
+on_the_fly_scc_union_node*
+on_the_fly_scc_union_node::find_set() const
 {
-    Node* me           = const_cast<Node*>(this);
-    Node* parent       = _parent.load();
-    Node* grand_parent = nullptr;
+    on_the_fly_scc_union_node* me           = const_cast<on_the_fly_scc_union_node*>(this);
+    on_the_fly_scc_union_node* parent       = _parent.load();
+    on_the_fly_scc_union_node* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ Node::find_set() const
 }
 
 bool
-Node::same_set(Node const * other) const
+on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) const
 {
-    Node const * me_repr    = find_set();
-    Node const * other_repr = other->find_set();
+    on_the_fly_scc_union_node const * me_repr    = find_set();
+    on_the_fly_scc_union_node const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -44,28 +44,28 @@ Node::same_set(Node const * other) const
 }
 
 bool
-Node::has_mask(uint64_t mask) const
+on_the_fly_scc_union_node::has_mask(uint64_t mask) const
 {
     return ((_mask.load()) & mask) != 0;
 }
 
 bool
-Node::is_dead() const
+on_the_fly_scc_union_node::is_dead() const
 {
     return _dead.load();
 }
 
 bool
-Node::is_done() const
+on_the_fly_scc_union_node::is_done() const
 {
     return _done.load();
 }
 
-Node*
-Node::get_node_from_set() const
+on_the_fly_scc_union_node*
+on_the_fly_scc_union_node::get_node_from_set() const
 {
-    Node* act  = _start_node.load();
-    Node* next = nullptr;
+    on_the_fly_scc_union_node* act  = _start_node.load();
+    on_the_fly_scc_union_node* next = nullptr;
 
     // grab act node only for yourself
     do
@@ -96,11 +96,11 @@ Node::get_node_from_set() const
 }
 
 bool
-Node::union_set(Node* other)
+on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
 {
-    Node* me_repr    = find_set();
-    Node* other_repr = other->find_set();
-    bool  success    = false;
+    on_the_fly_scc_union_node* me_repr    = find_set();
+    on_the_fly_scc_union_node* other_repr = other->find_set();
+    bool  success                         = false;
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -128,9 +128,9 @@ Node::union_set(Node* other)
 }
 
 void
-Node::add_mask(uint64_t mask)
+on_the_fly_scc_union_node::add_mask(uint64_t mask)
 {
-    Node* repr = find_set();
+    on_the_fly_scc_union_node* repr = find_set();
 
     do
     {
@@ -140,41 +140,41 @@ Node::add_mask(uint64_t mask)
 }
 
 bool
-Node::mark_as_dead()
+on_the_fly_scc_union_node::mark_as_dead()
 {
     bool expected = false;
     return _dead.compare_exchange_strong(expected, true);
 }
 
 bool
-Node::mark_as_done()
+on_the_fly_scc_union_node::mark_as_done()
 {
     bool expected = false;
     return _dead.compare_exchange_strong(expected, true);
 }
 
 bool
-Node::is_top() const
+on_the_fly_scc_union_node::is_top() const
 {
     return _parent.load() == this;
 }
 
 bool
-Node::lock() const
+on_the_fly_scc_union_node::lock() const
 {
     bool expected = false;
     return _spin_lock.compare_exchange_strong(expected, true);
 }
 
 void
-Node::unlock() const
+on_the_fly_scc_union_node::unlock() const
 {
     bool expected = true;
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
 void
-Node::hook_under_me(Node* other)
+on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
     // update parent
     other->_parent.compare_exchange_strong(other, this);
@@ -190,10 +190,10 @@ Node::hook_under_me(Node* other)
         _start_node.store(other->_start_node.load());
     else if (other->_start_node.load())
     {
-        Node* new_top_1 = _start_node.load();
-        Node* new_top_2 = new_top_1->_next_node.load();
-        Node* other_1   = other->_start_node.load();
-        Node* other_2   = other_1->_next_node.load();
+        on_the_fly_scc_union_node* new_top_1 = _start_node.load();
+        on_the_fly_scc_union_node* new_top_2 = new_top_1->_next_node.load();
+        on_the_fly_scc_union_node* other_1   = other->_start_node.load();
+        on_the_fly_scc_union_node* other_2   = other_1->_next_node.load();
 
         // rewire cycle
         new_top_1->_next_node.store(other_2);
