@@ -1,10 +1,4 @@
 template<typename union_node>
-simple_graph_node<union_node>::simple_graph_node()
-: _state(0), _neighbors(), _label(0)
-{
-}
-
-template<typename union_node>
 simple_graph_node<union_node>*
 simple_graph_node<union_node>::find_set() const
 {
@@ -15,7 +9,7 @@ template<typename union_node>
 std::pair<typename simple_graph_node<union_node>::iterator, typename simple_graph_node<union_node>::iterator>
 simple_graph_node<union_node>::get_random_neighbors_iterators()
 {
-    return {iterator(*this, 0), iterator(*this, _neighbors.size())};
+    return {iterator(_neighbors, 0), iterator(_neighbors, _neighbors.size())};
 }
 
 template<typename union_node>
@@ -40,11 +34,10 @@ simple_graph_node<union_node>::get_label() const
 }
 
 template<typename union_node>
-simple_graph_node_iterator<union_node>::simple_graph_node_iterator(simple_graph_node<union_node>& sgn, size_t steps)
-: _sgn(sgn), _steps(steps)
+simple_graph_node_iterator<union_node>::simple_graph_node_iterator(const std::vector<simple_graph_node<union_node>*>& vector, size_t steps)
+: _vector(vector), _next_pos(), _steps(steps)
 {
-    if (steps != _sgn._neighbors.size())
-        _next_pos = _sgn._state.fetch_add(1) % _sgn._neighbors.size();
+    _next_pos = reinterpret_cast<size_t>(this) % _vector.size();
 }
 
 template<typename union_node>
@@ -58,7 +51,7 @@ template<typename union_node>
 simple_graph_node_iterator<union_node>&
 simple_graph_node_iterator<union_node>::operator++()
 {
-    _next_pos = _sgn._state.fetch_add(1) % _sgn._neighbors.size();
+    _next_pos = (_next_pos + 1) % _vector.size();
     _steps++;
 
     return *this;
@@ -68,5 +61,5 @@ template<typename union_node>
 simple_graph_node<union_node>*
 simple_graph_node_iterator<union_node>::operator*() const
 {
-    return _sgn._neighbors.at(_next_pos);
+    return _vector.at(_next_pos);
 }
