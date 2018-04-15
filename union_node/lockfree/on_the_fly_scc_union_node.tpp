@@ -80,7 +80,7 @@ on_the_fly_scc_union_node::get_node_from_set() const
     if (next->_done.load())
         if (this->lock())
         {
-            if (act == next)
+            if (act == next && _start_node.load())
             {
                 // check again whether no new node was added
                 if (_start_node.load() == _start_node.load()->_next_node.load() && _start_node.load()->is_done())
