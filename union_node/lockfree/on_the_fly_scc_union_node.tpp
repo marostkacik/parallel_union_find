@@ -150,7 +150,7 @@ bool
 on_the_fly_scc_union_node::mark_as_done()
 {
     bool expected = false;
-    return _dead.compare_exchange_strong(expected, true);
+    return _done.compare_exchange_strong(expected, true);
 }
 
 bool
