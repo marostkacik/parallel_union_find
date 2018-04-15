@@ -5,10 +5,13 @@
 #include <bits/stdc++.h>
 #include "union_node/waitfree/simple_union_node.hpp"
 #include "union_node/lockfree/simple_union_node.hpp"
+#include "union_node/lockfree/on_the_fly_scc_union_node.hpp"
 #include "graph_node/simple_graph_node.hpp"
+#include "graph_node/concurrent_graph_node.hpp"
 #include "storage/per_thread_reserve_storage.hpp"
 #include "storage/per_thread_reserve_storage_accessor.hpp"
 #include "algorithm/simple_algorithm.hpp"
+#include "algorithm/concurrent_algorithm.hpp"
 
 using namespace std;
 using namespace parallel_union_find::union_node;
@@ -17,6 +20,7 @@ using namespace parallel_union_find::storage;
 using namespace parallel_union_find::algorithm;
 
 using node = simple_graph_node<lockfree::simple_union_node>;
+// using node = concurrent_graph_node<lockfree::on_the_fly_scc_union_node>;
 
 per_thread_reserve_storage<node> storage;
 
@@ -56,6 +60,7 @@ int main()
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < thread::hardware_concurrency(); ++i)
         threads.emplace_back(simple_algorithm<node>, storage.at(0));
+        // threads.emplace_back(concurrent_algorithm<node>, storage.at(0), (1 << i));
     for (thread& t : threads)
         t.join();
     auto finish = std::chrono::high_resolution_clock::now();
