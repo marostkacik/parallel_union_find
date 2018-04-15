@@ -13,16 +13,19 @@ int main(int argc, char* argv[])
 {
     if (argc == 2 && string(argv[1]) == "--help")
     {
-        cout << "usage: ./test1_generator num_cities > output.txt" << endl;
+        cout << "usage: ./create_n_cycles C N > output.txt\n";
+        cout << "C - number of cycles\n";
+        cout << "N - number of cities in each cycle\n";
         return 0;
     }
 
-    int n = atoi(argv[1]);
+    int c = atoi(argv[1]);
+    int n = atoi(argv[2]);
 
-    for (int c = 0; c < 15; ++c)
+    for (int i = 0; i < c; ++i)
     {
-        cout << "0 " << c * n + 1 << "\n";
-        create_cycle(c * n + 1, n - 1);
+        cout << "0 " << i * n + 1 << "\n";
+        create_cycle(i * n + 1, n - 1);
     }
 
     return 0;
