@@ -64,12 +64,6 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
                 stack_explore_nodes_vp.pop();
                 stack_explore_iterators.pop();
             }
-            // somebody else finished stack_explore_nodes_vp.top()
-            else if (stack_explore_nodes_vp.top()->is_done())
-            {
-                stack_explore_nodes_vp.pop();
-                stack_explore_iterators.pop();
-            }
             // take w from iterators and decide what next
             else
             {
