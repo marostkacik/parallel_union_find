@@ -37,7 +37,10 @@ template<typename union_node>
 simple_graph_node_iterator<union_node>::simple_graph_node_iterator(const std::vector<simple_graph_node<union_node>*>& vector, size_t steps)
 : _vector(vector), _next_pos(), _steps(steps)
 {
-    _next_pos = reinterpret_cast<size_t>(this) % _vector.size();
+    if (_vector.size() == 0)
+        _next_pos = 0;
+    else
+        _next_pos = reinterpret_cast<size_t>(this) % _vector.size();
 }
 
 template<typename union_node>
