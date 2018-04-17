@@ -1,8 +1,8 @@
 ![image1](pictures/simple_algorithm.png)
 ![image2](pictures/concurrent_algorithm.png)
-## Worst case multi-thread overhead
-All nodes create one big component, parallelism does not help here.
-This shows worst-case overhead which we add by using multi-thread algorithm.
+## Bad case scenario: multi-thread overhead
+All nodes create one big component, parallelism does not help here much.
+Graphs show mainly overhead added by parallelism.
 
 ### Overhead in simple algorithm scales almost linearly
 ![image3](pictures/simple_algorithm_cycle.png)
