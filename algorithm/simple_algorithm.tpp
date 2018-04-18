@@ -1,6 +1,6 @@
 template<typename GraphNode>
 void
-simple_algorithm(GraphNode* start_node)
+simple_algorithm(GraphNode* start_node, const uint64_t thread_id)
 {
     using GNiterator = typename GraphNode::iterator;
 
