@@ -70,6 +70,11 @@ int main(int argc, char* argv[])
 
     // print answer
     cerr << "Algorithm finished in " << chrono::duration<double>(time_finish - time_start).count() << " seconds" << endl;
-    cerr << "Number of components is " << storage.report_components().size() << endl;
+
+    // number of SCCs
+    unordered_set<node*> tops;
+    for (const pair<int, int>& p : seen_ppl)
+        tops.emplace(storage.at(p.second)->find_set());
+    cerr << "Number of components is " << tops.size() << endl;
 }
 
