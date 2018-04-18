@@ -80,14 +80,17 @@ on_the_fly_scc_union_node::get_node_from_set() const
     if (next->_done.load())
         if (this->lock())
         {
-            if (act == next && _start_node.load())
+            if (this->is_top())
             {
-                // check again whether no new node was added
-                if (_start_node.load() == _start_node.load()->_next_node.load() && _start_node.load()->is_done())
-                    _start_node.store(nullptr);
+                if (act == next && _start_node.load())
+                {
+                    // check again whether no new node was added
+                    if (_start_node.load() == _start_node.load()->_next_node.load() && _start_node.load()->is_done())
+                        _start_node.store(nullptr);
+                }
+                else
+                    act->_next_node.compare_exchange_strong(next, next->_next_node.load());
             }
-            else
-                act->_next_node.compare_exchange_strong(next, next->_next_node.load());
 
             this->unlock();
         }
