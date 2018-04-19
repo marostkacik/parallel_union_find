@@ -46,13 +46,13 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
 bool
 on_the_fly_scc_union_node::has_mask(uint64_t mask) const
 {
-    return ((_mask.load()) & mask) != 0;
+    return ((find_set()->_mask.load()) & mask) != 0;
 }
 
 bool
 on_the_fly_scc_union_node::is_dead() const
 {
-    return _dead.load();
+    return find_set()->_dead.load();
 }
 
 bool
@@ -145,8 +145,16 @@ on_the_fly_scc_union_node::add_mask(uint64_t mask)
 bool
 on_the_fly_scc_union_node::mark_as_dead()
 {
-    bool expected = false;
-    return _dead.compare_exchange_strong(expected, true);
+    on_the_fly_scc_union_node* repr = find_set();
+    bool                       success;
+
+    do
+    {
+        bool expected = false;
+        success = repr->_dead.compare_exchange_strong(expected, true);
+    } while (!repr->is_top());
+
+    return success;
 }
 
 bool
