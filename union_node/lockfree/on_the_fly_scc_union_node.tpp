@@ -1,5 +1,5 @@
 on_the_fly_scc_union_node::on_the_fly_scc_union_node()
-: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
+: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _merged_top(nullptr), _size(1), _start_node(this), _next_node(this)
 {
 }
 
@@ -33,7 +33,7 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
     on_the_fly_scc_union_node const * other_repr = other->find_set();
 
     while (true)
-        if (me_repr == other_repr)
+        if (me_repr == other_repr || me_repr == other_repr->_merged_top.load() || me_repr->_merged_top.load() == other_repr)
             return true;
         else if (!me_repr->is_top())
             me_repr = me_repr->find_set();
@@ -46,7 +46,13 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
 bool
 on_the_fly_scc_union_node::has_mask(uint64_t mask) const
 {
-    return ((find_set()->_mask.load()) & mask) != 0;
+    on_the_fly_scc_union_node* repr           = find_set();
+    on_the_fly_scc_union_node* merged_top     = repr->_merged_top.load();
+
+    bool repr_valid       = (repr->_mask.load() & mask) != 0;
+    bool merged_top_valid = !merged_top && (merged_top->_mask.load() & mask) != 0;
+
+    return repr_valid || merged_top_valid;
 }
 
 bool
@@ -189,6 +195,9 @@ on_the_fly_scc_union_node::unlock() const
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
+    // set merged node
+    _merged_top.store(other);
+
     // update parent
     other->_parent.compare_exchange_strong(other, this);
 
@@ -197,6 +206,9 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 
     // update mask
     _mask.fetch_or(other->_mask.load());
+
+    // remove merged node, now mask and parent are ok
+    _merged_top.store(nullptr);
 
     // update list
     if (!_start_node.load())
