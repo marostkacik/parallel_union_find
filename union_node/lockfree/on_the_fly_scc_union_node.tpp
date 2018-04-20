@@ -50,7 +50,7 @@ on_the_fly_scc_union_node::has_mask(uint64_t mask) const
     on_the_fly_scc_union_node* merged_top     = repr->_merged_top.load();
 
     bool repr_valid       = (repr->_mask.load() & mask) != 0;
-    bool merged_top_valid = !merged_top && (merged_top->_mask.load() & mask) != 0;
+    bool merged_top_valid = merged_top && (merged_top->_mask.load() & mask) != 0;
 
     return repr_valid || merged_top_valid;
 }
