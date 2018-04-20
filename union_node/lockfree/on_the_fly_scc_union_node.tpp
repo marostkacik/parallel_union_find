@@ -150,6 +150,8 @@ on_the_fly_scc_union_node::mark_as_dead()
 
     do
     {
+        repr = repr->find_set();
+
         bool expected = false;
         success = repr->_dead.compare_exchange_strong(expected, true);
     } while (!repr->is_top());
