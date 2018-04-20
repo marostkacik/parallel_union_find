@@ -1,5 +1,5 @@
 simple_union_node::simple_union_node()
-: _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1)
+: _spin_lock(false), _dead(false), _parent(this), _mask(0), _merged_top(nullptr), _size(1)
 {
 }
 
@@ -46,13 +46,19 @@ simple_union_node::same_set(simple_union_node const * other) const
 bool
 simple_union_node::has_mask(uint64_t mask) const
 {
-    return ((_mask.load()) & mask) != 0;
+    simple_union_node* repr       = find_set();
+    simple_union_node* merged_top = repr->_merged_top.load();
+
+    bool repr_valid       = (repr->_mask.load() & mask) != 0;
+    bool merged_top_valid = merged_top && (merged_top->_mask.load() & mask) != 0;
+
+    return repr_valid || merged_top_valid;
 }
 
 bool
 simple_union_node::is_dead() const
 {
-    return _dead.load();
+    return find_set()->_dead.load();
 }
 
 bool
@@ -102,8 +108,18 @@ simple_union_node::add_mask(uint64_t mask)
 bool
 simple_union_node::mark_as_dead()
 {
-    bool expected = false;
-    return _dead.compare_exchange_strong(expected, true);
+    simple_union_node* repr = find_set();
+    bool               success;
+
+    do
+    {
+        repr = repr->find_set();
+
+        bool expected = false;
+        success = repr->_dead.compare_exchange_strong(expected, true);
+    } while (!repr->is_top());
+
+    return success;
 }
 
 bool
@@ -129,6 +145,9 @@ simple_union_node::unlock() const
 void
 simple_union_node::hook_under_me(simple_union_node* other)
 {
+    // set merged node
+    _merged_top.store(other);
+
     // update parent
     other->_parent.compare_exchange_strong(other, this);
 
@@ -137,4 +156,7 @@ simple_union_node::hook_under_me(simple_union_node* other)
 
     // update mask
     _mask.fetch_or(other->_mask.load());
+
+    // remove merged node, now mask and parent are ok
+    _merged_top.store(nullptr);
 }
