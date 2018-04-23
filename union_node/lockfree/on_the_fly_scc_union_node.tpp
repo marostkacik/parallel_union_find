@@ -61,13 +61,9 @@ on_the_fly_scc_union_node::is_done() const
     return _done.load();
 }
 
-static std::mutex pop_mutex;
-
 on_the_fly_scc_union_node*
 on_the_fly_scc_union_node::get_node_from_set() const
 {
-    pop_mutex.lock();
-
     on_the_fly_scc_union_node* act  = _start_node.load();
     on_the_fly_scc_union_node* next = nullptr;
 
@@ -75,10 +71,7 @@ on_the_fly_scc_union_node::get_node_from_set() const
     do
     {
         if (!act)
-        {
-            pop_mutex.unlock();
             return nullptr;
-        }
         else
             next = act->_next_node.load();
     } while (!_start_node.compare_exchange_strong(act, next));
@@ -101,8 +94,6 @@ on_the_fly_scc_union_node::get_node_from_set() const
 
             this->unlock();
         }
-
-    pop_mutex.unlock();
 
     return act;
 }
@@ -230,32 +221,51 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
+
+
     // update data
     _mask.fetch_or(other->_mask.load());
     _size += other->_size.load();
     other->_parent.compare_exchange_strong(other, this);
 
-    pop_mutex.lock();
-
     // get first nodes which are on cycle
-    for (int i = 0; i < 100; ++i)
+    while (true)
+    {
+        on_the_fly_scc_union_node* node = this->get_node_from_set_not_locking();
+        if (node && !node->is_done())
+            break;
+        else if (!node)
+            break;
+    }
+    // check this
+    {
+        std::unordered_set<on_the_fly_scc_union_node*> visited;
+        on_the_fly_scc_union_node* first = this->get_node_from_set_not_locking();
+
+        visited.insert(first);
         while (true)
         {
-            on_the_fly_scc_union_node* node = this->get_node_from_set_not_locking();
-            if (node && !node->is_done())
+            on_the_fly_scc_union_node* cand = this->get_node_from_set_not_locking();
+            if (visited.find(cand) != visited.end())
+            {
+                if (cand != first)
+                    std::cerr << "FIRST DONE IS NOT ENOUGHT" << std::endl;
                 break;
-            else if (!node)
-                break;
+            }
+            else
+                visited.insert(cand);
         }
-    for (int i = 0; i < 100; ++i)
-        while (true)
-        {
-            on_the_fly_scc_union_node* node = other->get_node_from_set_not_locking();
-            if (node && !node->is_done())
-                break;
-            else if (!node)
-                break;
-        }
+
+    }
+
+    while (true)
+    {
+        on_the_fly_scc_union_node* node = other->get_node_from_set_not_locking();
+        if (node && !node->is_done())
+            break;
+        else if (!node)
+            break;
+    }
 
     // update list
     if (!_start_node.load())
@@ -271,6 +281,4 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
         new_top_1->_next_node.store(other_2);
         other_1->_next_node.store(new_top_2);
     }
-
-    pop_mutex.unlock();
 }
