@@ -1,5 +1,5 @@
 on_the_fly_scc_union_node::on_the_fly_scc_union_node()
-: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _merged_top(nullptr), _size(1), _start_node(this), _next_node(this)
+: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
 {
 }
 
@@ -33,7 +33,7 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
     on_the_fly_scc_union_node const * other_repr = other->find_set();
 
     while (true)
-        if (me_repr == other_repr || me_repr == other_repr->_merged_top.load() || me_repr->_merged_top.load() == other_repr)
+        if (me_repr == other_repr)
             return true;
         else if (!me_repr->is_top())
             me_repr = me_repr->find_set();
@@ -46,13 +46,7 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
 bool
 on_the_fly_scc_union_node::has_mask(uint64_t mask) const
 {
-    on_the_fly_scc_union_node* repr           = find_set();
-    on_the_fly_scc_union_node* merged_top     = repr->_merged_top.load();
-
-    bool repr_valid       = (repr->_mask.load() & mask) != 0;
-    bool merged_top_valid = merged_top && (merged_top->_mask.load() & mask) != 0;
-
-    return repr_valid || merged_top_valid;
+    return (find_set()->_mask.load() & mask) != 0;
 }
 
 bool
@@ -67,17 +61,24 @@ on_the_fly_scc_union_node::is_done() const
     return _done.load();
 }
 
+static std::mutex pop_mutex;
+
 on_the_fly_scc_union_node*
 on_the_fly_scc_union_node::get_node_from_set() const
 {
     on_the_fly_scc_union_node* act  = _start_node.load();
     on_the_fly_scc_union_node* next = nullptr;
 
+    pop_mutex.lock();
+
     // grab act node only for yourself
     do
     {
         if (!act)
+        {
+            pop_mutex.unlock();
             return nullptr;
+        }
         else
             next = act->_next_node.load();
     } while (!_start_node.compare_exchange_strong(act, next));
@@ -101,6 +102,8 @@ on_the_fly_scc_union_node::get_node_from_set() const
             this->unlock();
         }
 
+    pop_mutex.unlock();
+
     return act;
 }
 
@@ -112,9 +115,8 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
     bool  success                         = false;
 
     if (me_repr->same_set(other_repr))
-        return true;
-
-    if (me_repr->lock())
+        success = true;
+    else if (me_repr->lock())
     {
         if (other_repr->lock())
         {
@@ -228,34 +230,32 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
-    // set merged node
-    _merged_top.store(other);
-
     // update data
-    other->_parent.compare_exchange_strong(other, this);
-    _size += other->_size.load();
     _mask.fetch_or(other->_mask.load());
+    _size += other->_size.load();
+    other->_parent.compare_exchange_strong(other, this);
 
-    // remove merged node, now mask and parent are ok
-    _merged_top.store(nullptr);
+    pop_mutex.lock();
 
     // get first nodes which are on cycle
-    while (true)
-    {
-        on_the_fly_scc_union_node* node = this->get_node_from_set_not_locking();
-        if (node && !node->is_done())
-            break;
-        else if (!node)
-            break;
-    }
-    while (true)
-    {
-        on_the_fly_scc_union_node* node = other->get_node_from_set_not_locking();
-        if (node && !node->is_done())
-            break;
-        else if (!node)
-            break;
-    }
+    for (int i = 0; i < 100; ++i)
+        while (true)
+        {
+            on_the_fly_scc_union_node* node = this->get_node_from_set_not_locking();
+            if (node && !node->is_done())
+                break;
+            else if (!node)
+                break;
+        }
+    for (int i = 0; i < 100; ++i)
+        while (true)
+        {
+            on_the_fly_scc_union_node* node = other->get_node_from_set_not_locking();
+            if (node && !node->is_done())
+                break;
+            else if (!node)
+                break;
+        }
 
     // update list
     if (!_start_node.load())
@@ -271,4 +271,6 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
         new_top_1->_next_node.store(other_2);
         other_1->_next_node.store(new_top_2);
     }
+
+    pop_mutex.unlock();
 }

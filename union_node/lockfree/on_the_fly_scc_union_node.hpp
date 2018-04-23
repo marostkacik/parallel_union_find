@@ -40,7 +40,6 @@ private:
     // union set data
     mutable std::atomic<on_the_fly_scc_union_node*> _parent;
     std::atomic<uint64_t>                           _mask;
-    std::atomic<on_the_fly_scc_union_node*>         _merged_top;
     std::atomic<uint64_t>                           _size;
 
     // circular linked list data

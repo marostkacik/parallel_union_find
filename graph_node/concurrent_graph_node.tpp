@@ -47,7 +47,7 @@ concurrent_graph_node_iterator<union_node>::concurrent_graph_node_iterator(const
     if (_vector.size() == 0)
         _next_pos = 0;
     else
-        _next_pos = reinterpret_cast<size_t>(this) % _vector.size();
+        _next_pos = (reinterpret_cast<size_t>(this) * 397) % _vector.size();
 }
 
 template<typename union_node>
