@@ -104,8 +104,6 @@ on_the_fly_scc_union_node::get_node_from_set() const
     return act;
 }
 
-// TODO do get_node from set, which assumes that it's top and already locked
-
 bool
 on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
 {
@@ -120,8 +118,6 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
     {
         if (other_repr->lock())
         {
-            // now me_repr and other_repr cannot be changed
-
             if (me_repr->same_set(other_repr))
                 success = true;
             else if (me_repr->is_top() && other_repr->is_top())
@@ -198,23 +194,68 @@ on_the_fly_scc_union_node::unlock() const
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
+on_the_fly_scc_union_node*
+on_the_fly_scc_union_node::get_node_from_set_not_locking()
+{
+    on_the_fly_scc_union_node* act  = _start_node.load();
+    on_the_fly_scc_union_node* next = nullptr;
+
+    // grab act only for yourself
+    do
+    {
+        if (act == nullptr)
+            return nullptr;
+        else
+            next = act->_next_node.load();
+    } while (!_start_node.compare_exchange_strong(act, next));
+
+    // try to pop next node if it's done
+    if (next->is_done())
+    {
+        if (act == next && _start_node.load())
+        {
+            on_the_fly_scc_union_node* node = _start_node.load();
+            if (node == node->_next_node.load() && node->is_done())
+                _start_node.store(nullptr);
+        }
+        else
+            act->_next_node.compare_exchange_strong(next, next->_next_node.load());
+    }
+
+    return act;
+}
+
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
     // set merged node
     _merged_top.store(other);
 
-    // update parent
+    // update data
     other->_parent.compare_exchange_strong(other, this);
-
-    // update size
     _size += other->_size.load();
-
-    // update mask
     _mask.fetch_or(other->_mask.load());
 
     // remove merged node, now mask and parent are ok
     _merged_top.store(nullptr);
+
+    // get first nodes which are on cycle
+    while (true)
+    {
+        on_the_fly_scc_union_node* node = this->get_node_from_set_not_locking();
+        if (node && !node->is_done())
+            break;
+        else if (!node)
+            break;
+    }
+    while (true)
+    {
+        on_the_fly_scc_union_node* node = other->get_node_from_set_not_locking();
+        if (node && !node->is_done())
+            break;
+        else if (!node)
+            break;
+    }
 
     // update list
     if (!_start_node.load())

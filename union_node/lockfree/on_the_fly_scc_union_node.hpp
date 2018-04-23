@@ -29,6 +29,7 @@ private:
     bool                       lock() const;
     void                       unlock() const;
 
+    on_the_fly_scc_union_node* get_node_from_set_not_locking();
     void                       hook_under_me(on_the_fly_scc_union_node* other);
 
 private:
