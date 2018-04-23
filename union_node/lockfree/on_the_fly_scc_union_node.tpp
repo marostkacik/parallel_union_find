@@ -76,7 +76,7 @@ on_the_fly_scc_union_node::get_node_from_set() const
     // grab act node only for yourself
     do
     {
-        if (act == nullptr)
+        if (!act)
             return nullptr;
         else
             next = act->_next_node.load();
@@ -203,7 +203,7 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
     // grab act only for yourself
     do
     {
-        if (act == nullptr)
+        if (!act)
             return nullptr;
         else
             next = act->_next_node.load();
