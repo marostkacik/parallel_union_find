@@ -112,9 +112,8 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
     bool  success                         = false;
 
     if (me_repr->same_set(other_repr))
-        return true;
-
-    if (me_repr->lock())
+        success = true;
+    else if (me_repr->lock())
     {
         if (other_repr->lock())
         {
