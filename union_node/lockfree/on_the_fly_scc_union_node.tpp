@@ -90,8 +90,8 @@ on_the_fly_scc_union_node::get_node_from_set() const
             {
                 if (act == next && _start_node.load())
                 {
-                    // check again whether no new node was added
-                    if (_start_node.load() == _start_node.load()->_next_node.load() && _start_node.load()->is_done())
+                    on_the_fly_scc_union_node* node = _start_node.load();
+                    if (node == node->_next_node.load() && node->is_done())
                         _start_node.store(nullptr);
                 }
                 else
@@ -103,6 +103,8 @@ on_the_fly_scc_union_node::get_node_from_set() const
 
     return act;
 }
+
+// TODO do get_node from set, which assumes that it's top and already locked
 
 bool
 on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
@@ -119,7 +121,10 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
         if (other_repr->lock())
         {
             // now me_repr and other_repr cannot be changed
-            if (me_repr->is_top() && other_repr->is_top())
+
+            if (me_repr->same_set(other_repr))
+                success = true;
+            else if (me_repr->is_top() && other_repr->is_top())
             {
                 if (me_repr->_size.load() >= other_repr->_size.load())
                     me_repr->hook_under_me(other_repr);
@@ -128,6 +133,7 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
 
                 success = true;
             }
+
             other_repr->unlock();
         }
         me_repr->unlock();
