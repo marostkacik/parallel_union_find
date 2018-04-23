@@ -66,10 +66,10 @@ static std::mutex pop_mutex;
 on_the_fly_scc_union_node*
 on_the_fly_scc_union_node::get_node_from_set() const
 {
+    pop_mutex.lock();
+
     on_the_fly_scc_union_node* act  = _start_node.load();
     on_the_fly_scc_union_node* next = nullptr;
-
-    pop_mutex.lock();
 
     // grab act node only for yourself
     do
