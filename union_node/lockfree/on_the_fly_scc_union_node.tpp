@@ -214,37 +214,27 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
     _size += other->_size.load();
     other->_parent.compare_exchange_strong(other, this);
 
-    // get first nodes which are on cycle
-    while (true)
-    {
-        on_the_fly_scc_union_node* node = this->get_node_from_set_not_locking();
-        if (node && !node->is_done())
-            break;
-        else if (!node)
-            break;
-    }
+    on_the_fly_scc_union_node* new_top_1 = this->get_node_from_set_not_locking();
+    on_the_fly_scc_union_node* new_top_2 = nullptr;
+    on_the_fly_scc_union_node* other_1   = other->get_node_from_set_not_locking();
+    on_the_fly_scc_union_node* other_2   = nullptr;
 
-    while (true)
-    {
-        on_the_fly_scc_union_node* node = other->get_node_from_set_not_locking();
-        if (node && !node->is_done())
-            break;
-        else if (!node)
-            break;
-    }
+    while (new_top_1 && new_top_1->is_done())
+        new_top_1 = this->get_node_from_set_not_locking();
+    while (other_1 && other_1->is_done())
+        other_1   = other->get_node_from_set_not_locking();
 
-    // update list
-    if (!_start_node.load())
-        _start_node.store(other->_start_node.load());
-    else if (other->_start_node.load())
-    {
-        on_the_fly_scc_union_node* new_top_1 = _start_node.load();
-        on_the_fly_scc_union_node* new_top_2 = new_top_1->_next_node.load();
-        on_the_fly_scc_union_node* other_1   = other->_start_node.load();
-        on_the_fly_scc_union_node* other_2   = other_1->_next_node.load();
+    if (new_top_1)
+        new_top_2 = new_top_1->_next_node.load();
+    if (other_1)
+        other_2 = other_1->_next_node.load();
 
-        // rewire cycle
-        new_top_1->_next_node.store(other_2);
+    // rewire cycle
+    if (new_top_1 && other_1)
+        new_top_1->_next_node.store(other_2),
         other_1->_next_node.store(new_top_2);
-    }
+    else if (new_top_1 && !other_1);
+    else if (!new_top_1 && other_1)
+        _start_node.store(other_1);
+    else if (!new_top_1 && !other_1);
 }
