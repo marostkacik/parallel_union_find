@@ -76,24 +76,14 @@ on_the_fly_scc_union_node::get_node_from_set() const
             next = act->_next_node.load();
     } while (!_start_node.compare_exchange_strong(act, next));
 
-    // try to pop next node if it's done
-    if (next->_done.load())
-        if (this->lock())
-        {
-            if (this->is_top())
-            {
-                if (act == next && _start_node.load())
-                {
-                    on_the_fly_scc_union_node* node = _start_node.load();
-                    if (node == node->_next_node.load() && node->is_done())
-                        _start_node.store(nullptr);
-                }
-                else
-                    act->_next_node.compare_exchange_strong(next, next->_next_node.load());
-            }
-
-            this->unlock();
-        }
+    // we might want to pop next node
+    if (next->is_done())
+    {
+        if (act == next)
+            _start_node.store(nullptr);
+        else
+            act->_next_node.store(next->_next_node.load());
+    }
 
     return act;
 }
@@ -205,14 +195,10 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
     // try to pop next node if it's done
     if (next->is_done())
     {
-        if (act == next && _start_node.load())
-        {
-            on_the_fly_scc_union_node* node = _start_node.load();
-            if (node == node->_next_node.load() && node->is_done())
-                _start_node.store(nullptr);
-        }
+        if (act == next)
+            _start_node.store(nullptr);
         else
-            act->_next_node.compare_exchange_strong(next, next->_next_node.load());
+            act->_next_node.store(next->_next_node.load());
     }
 
     return act;
@@ -236,26 +222,6 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
             break;
         else if (!node)
             break;
-    }
-    // check this
-    {
-        std::unordered_set<on_the_fly_scc_union_node*> visited;
-        on_the_fly_scc_union_node* first = this->get_node_from_set_not_locking();
-
-        visited.insert(first);
-        while (true)
-        {
-            on_the_fly_scc_union_node* cand = this->get_node_from_set_not_locking();
-            if (visited.find(cand) != visited.end())
-            {
-                if (cand != first)
-                    std::cerr << "FIRST DONE IS NOT ENOUGHT" << std::endl;
-                break;
-            }
-            else
-                visited.insert(cand);
-        }
-
     }
 
     while (true)
