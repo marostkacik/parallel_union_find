@@ -79,10 +79,21 @@ on_the_fly_scc_union_node::get_node_from_set() const
     // we might want to pop next node
     if (next->is_done())
     {
-        if (act == next)
-            _start_node.store(nullptr);
-        else
-            act->_next_node.store(next->_next_node.load());
+        if (this->lock())
+        {
+            if (this->is_top())
+            {
+                on_the_fly_scc_union_node* last_node = _start_node.load();
+
+                // last_node is last
+                if (last_node && last_node == last_node->_next_node.load() && last_node->is_done())
+                    _start_node.store(nullptr);
+                // last node is either alive or is not last, so just make circle smaller, because next is done
+                else
+                    act->_next_node.compare_exchange_strong(next, next->_next_node.load());
+            }
+        }
+        this->unlock();
     }
 
     return act;
@@ -192,13 +203,16 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
             next = act->_next_node.load();
     } while (!_start_node.compare_exchange_strong(act, next));
 
-    // try to pop next node if it's done
+    // we might want to pop next node
     if (next->is_done())
     {
-        if (act == next)
+        on_the_fly_scc_union_node* last_node = _start_node.load();
+
+        // last_node is last
+        if (last_node && last_node == last_node->_next_node.load() && last_node->is_done())
             _start_node.store(nullptr);
         else
-            act->_next_node.store(next->_next_node.load());
+            act->_next_node.compare_exchange_strong(next, next->_next_node.load());
     }
 
     return act;
@@ -207,9 +221,7 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
-
-
-    // update data
+    // update data, mask has to go before parent, otherwise has_mask could incorrectly return answer
     _mask.fetch_or(other->_mask.load());
     _size += other->_size.load();
     other->_parent.compare_exchange_strong(other, this);
