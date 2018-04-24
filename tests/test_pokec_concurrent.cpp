@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     auto time_finish = chrono::high_resolution_clock::now();
 
     // print answer
-    // cerr << "Algorithm finished in " << chrono::duration<double>(time_finish - time_start).count() << " seconds" << endl;
+    cerr << "Algorithm finished in " << chrono::duration<double>(time_finish - time_start).count() << " seconds" << endl;
 
     // number of SCCs
     unordered_set<node*> tops;
