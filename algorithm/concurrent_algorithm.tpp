@@ -36,12 +36,15 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
         // pick random v' and insert its random iterators
         if (stack_explore_nodes_v.size() == stack_explore_nodes_vp.size() + 1)
         {
+            // get candidate node which is not done to prevent creating unnecessary iterators, which can be expensive
             GraphNode* candidate = get_vp_from(stack_explore_nodes_v.top());
+            while (candidate && candidate->is_done())
+                candidate = get_vp_from(stack_explore_nodes_v.top());
 
             if (!candidate)
             {
                 if (stack_explore_nodes_v.top()->find_set()->mark_as_dead());
-                    // You can report SCC here after locking and if you remember more data
+                    // You can report SCC here after locking and if you would remember more data
 
                 if (stack_explore_nodes_v.top() == stack_path_nodes.top())
                     stack_path_nodes.pop();
@@ -61,6 +64,12 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
             if (stack_explore_iterators.top().first == stack_explore_iterators.top().second)
             {
                 stack_explore_nodes_vp.top()->mark_as_done();
+                stack_explore_nodes_vp.pop();
+                stack_explore_iterators.pop();
+            }
+            // active node v' was marked dead, no need to search him anymore
+            else if (stack_explore_nodes_vp.top()->is_done())
+            {
                 stack_explore_nodes_vp.pop();
                 stack_explore_iterators.pop();
             }
