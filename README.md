@@ -1,12 +1,7 @@
-![image1](pictures/simple_algorithm.png)
-![image2](pictures/concurrent_algorithm.png)
-## Bad case scenario: multi-thread overhead
-All nodes create one big component, parallelism does not help here much.
-Graphs show mainly overhead added by parallelism.
+## Performance Comparison
+Comparing performance on real-world data from Slovak social network Pokec: https://snap.stanford.edu/data/soc-pokec.html.
+Algorithms are finding SCCs(Strongly Connected Components) in oriented graph which represents friendships.
+It looks for SCCs which are reachable from node with 'ID = 1'.
 
-### Overhead in simple algorithm scales almost linearly
-![image3](pictures/simple_algorithm_cycle.png)
-
-### Overhead in concurrent algorithm is only ~60% of overhead is simple algorithm.
-It's probably because of deterministic work distribution in on_the_fly_scc_union_node::get_node_from_set
-![image4](pictures/concurrent_algorithm_cycle.png)
+Algorithm based on paper in green, randomized algorithm in red.
+![image1](pictures/parallel_vs_randomized.png)
