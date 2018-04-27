@@ -1,6 +1,10 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <array>
+#include <vector>
+#include <mutex>
+#include <atomic>
+#include <tuple>
 
 namespace parallel_union_find::storage
 {

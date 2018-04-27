@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bits/stdc++.h>
 #include "per_thread_reserve_storage.hpp"
 
 namespace parallel_union_find::storage

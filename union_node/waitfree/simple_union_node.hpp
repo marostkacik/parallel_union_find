@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <atomic>
 
 namespace parallel_union_find::union_node::waitfree
 {

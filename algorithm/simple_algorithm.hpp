@@ -1,6 +1,7 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <stack>
+#include <unordered_map>
 
 namespace parallel_union_find::algorithm
 {

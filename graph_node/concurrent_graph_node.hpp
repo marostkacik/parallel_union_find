@@ -1,6 +1,7 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <vector>
+#include <tuple>
 
 namespace parallel_union_find::graph_node
 {

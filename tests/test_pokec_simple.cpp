@@ -1,4 +1,8 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <thread>
+#include <chrono>
 #include "union_node/lockfree/simple_union_node.hpp"
 #include "graph_node/simple_graph_node.hpp"
 #include "algorithm/simple_algorithm.hpp"

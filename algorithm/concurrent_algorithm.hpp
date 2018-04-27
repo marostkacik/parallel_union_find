@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <stack>
 
 namespace parallel_union_find::algorithm
 {

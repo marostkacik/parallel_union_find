@@ -1,6 +1,7 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <array>
+#include <atomic>
 #include "simple_storage.hpp"
 
 namespace parallel_union_find::storage
