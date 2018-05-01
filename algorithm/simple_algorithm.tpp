@@ -24,8 +24,7 @@ simple_algorithm(GraphNode* start_node, const uint64_t thread_id)
         {
             // found SCC
             if (stack_path_nodes.top() == stack_explore_nodes.top())
-                stack_path_nodes.top()->find_set()->mark_as_dead(),
-                // std::cerr << "marked as dead = " << stack_path_nodes.top()->find_set()->get_label() << std::endl,
+                stack_path_nodes.top()->mark_as_dead(),
                 stack_path_nodes.pop();
             stack_explore_nodes.pop();
             stack_explore_pairs.pop();
@@ -36,7 +35,7 @@ simple_algorithm(GraphNode* start_node, const uint64_t thread_id)
         GraphNode* next_node = *stack_explore_pairs.top().first;
         ++stack_explore_pairs.top().first;
 
-        if (!next_node->find_set()->is_dead())
+        if (!next_node->is_dead())
         {
             // if next_node has been seen, we found cycle!
             if (seen_nodes.find(next_node) != seen_nodes.end())
