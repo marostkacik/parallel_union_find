@@ -67,8 +67,18 @@ simple_union_node::union_set(simple_union_node* other)
 bool
 simple_union_node::mark_as_dead()
 {
-    bool expected = false;
-    _dead.compare_exchange_strong(expected, true);
+    simple_union_node* repr = find_set();
+    bool               success;
+
+    do
+    {
+        repr = repr->find_set();
+
+        bool expected = false;
+        success = repr->_dead.compare_exchange_strong(expected, true);
+    } while (!repr->is_top());
+
+    return success;
 }
 
 bool
