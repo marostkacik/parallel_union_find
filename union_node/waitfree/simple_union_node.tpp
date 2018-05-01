@@ -46,7 +46,7 @@ simple_union_node::same_set(simple_union_node const * other) const
 bool
 simple_union_node::is_dead() const
 {
-    return _dead.load();
+    return find_set()->_dead.load();
 }
 
 bool
