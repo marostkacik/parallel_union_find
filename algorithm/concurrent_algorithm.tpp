@@ -1,6 +1,6 @@
 template<typename GraphNode>
 GraphNode*
-get_vp_from(GraphNode* vp)
+internal_::get_vp_from(GraphNode* vp)
 {
     GraphNode* representative = vp;
     GraphNode* candidate;
@@ -37,9 +37,9 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
         if (stack_explore_nodes_v.size() == stack_explore_nodes_vp.size() + 1)
         {
             // get candidate node which is not done to prevent creating unnecessary iterators, which can be expensive
-            GraphNode* candidate = get_vp_from(stack_explore_nodes_v.top());
+            GraphNode* candidate = internal_::get_vp_from(stack_explore_nodes_v.top());
             while (candidate && candidate->is_done())
-                candidate = get_vp_from(stack_explore_nodes_v.top());
+                candidate = internal_::get_vp_from(stack_explore_nodes_v.top());
 
             if (!candidate)
             {
