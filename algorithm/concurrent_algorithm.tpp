@@ -82,9 +82,9 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
                 // std::cerr << "looking at " << w->get_label() << std::endl;
 
                 // w is dead, do nothing
-                if (w->find_set()->is_dead());
+                if (w->is_dead());
                 // "recursively" call on w
-                else if (!w->find_set()->has_mask(thread_id))
+                else if (!w->has_mask(thread_id))
                 {
                     w->add_mask(thread_id);
                     stack_path_nodes.emplace(w);
