@@ -35,7 +35,6 @@ namespace parallel_union_find::union_node::lockfree
         // union set data
         mutable std::atomic<simple_union_node*> _parent;
         std::atomic<uint64_t>                   _mask;
-        std::atomic<simple_union_node*>         _merged_top;
         std::atomic<uint64_t>                   _size;
     };
 

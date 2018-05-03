@@ -1,5 +1,5 @@
 simple_union_node::simple_union_node()
-: _spin_lock(false), _dead(false), _parent(this), _mask(0), _merged_top(nullptr), _size(1)
+: _spin_lock(false), _dead(false), _parent(this), _mask(0), _size(1)
 {
 }
 
@@ -46,13 +46,7 @@ simple_union_node::same_set(simple_union_node const * other) const
 bool
 simple_union_node::has_mask(uint64_t mask) const
 {
-    simple_union_node* repr       = find_set();
-    simple_union_node* merged_top = repr->_merged_top.load();
-
-    bool repr_valid       = (repr->_mask.load() & mask) != 0;
-    bool merged_top_valid = merged_top && (merged_top->_mask.load() & mask) != 0;
-
-    return repr_valid || merged_top_valid;
+    return (find_set()->_mask.load() & mask) != 0;
 }
 
 bool
@@ -75,8 +69,9 @@ simple_union_node::union_set(simple_union_node* other)
     {
         if (other_repr->lock())
         {
-            // now me_repr and other_repr cannot be changed
-            if (me_repr->is_top() && other_repr->is_top())
+            if (me_repr->same_set(other_repr))
+                success = true;
+            else if (me_repr->is_top() && other_repr->is_top())
             {
                 if (me_repr->_size.load() >= other_repr->_size.load())
                     me_repr->hook_under_me(other_repr);
@@ -145,18 +140,7 @@ simple_union_node::unlock() const
 void
 simple_union_node::hook_under_me(simple_union_node* other)
 {
-    // set merged node
-    _merged_top.store(other);
-
-    // update parent
-    other->_parent.compare_exchange_strong(other, this);
-
-    // update size
-    _size += other->_size.load();
-
-    // update mask
     _mask.fetch_or(other->_mask.load());
-
-    // remove merged node, now mask and parent are ok
-    _merged_top.store(nullptr);
+    _size += other->_size.load();
+    other->_parent.compare_exchange_strong(other, this);
 }
