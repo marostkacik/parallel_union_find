@@ -43,7 +43,7 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
 
             if (!candidate)
             {
-                if (stack_explore_nodes_v.top()->find_set()->mark_as_dead());
+                if (stack_explore_nodes_v.top()->mark_as_dead());
                     // You can report SCC here after locking and if you would remember more data
 
                 if (stack_explore_nodes_v.top() == stack_path_nodes.top())
