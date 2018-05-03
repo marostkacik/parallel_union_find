@@ -92,8 +92,9 @@ on_the_fly_scc_union_node::get_node_from_set() const
                 else
                     act->_next_node.compare_exchange_strong(next, next->_next_node.load());
             }
+
+            this->unlock();
         }
-        this->unlock();
     }
 
     return act;
