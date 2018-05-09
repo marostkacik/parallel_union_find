@@ -82,16 +82,9 @@ on_the_fly_scc_union_node::get_node_from_set() const
         if (this->lock())
         {
             if (this->is_top())
-            {
-                on_the_fly_scc_union_node* last_node = _start_node.load();
-
-                // last_node is last
-                if (last_node && last_node == last_node->_next_node.load() && last_node->is_done())
-                    _start_node.store(nullptr);
-                // last node is either alive or is not last, so just make circle smaller, because next is done
-                else
-                    act->_next_node.compare_exchange_strong(next, next->_next_node.load());
-            }
+                if (act->_next_node.compare_exchange_strong(next, next->_next_node.load()))
+                    if (act == next)
+                        _start_node.store(nullptr);
 
             this->unlock();
         }
@@ -207,13 +200,9 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
     // we might want to pop next node
     if (next->is_done())
     {
-        on_the_fly_scc_union_node* last_node = _start_node.load();
-
-        // last_node is last
-        if (last_node && last_node == last_node->_next_node.load() && last_node->is_done())
-            _start_node.store(nullptr);
-        else
-            act->_next_node.compare_exchange_strong(next, next->_next_node.load());
+        if (act->_next_node.compare_exchange_strong(next, next->_next_node.load()))
+            if (act == next)
+                _start_node.store(nullptr);
     }
 
     return act;
