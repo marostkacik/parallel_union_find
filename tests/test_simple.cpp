@@ -24,51 +24,67 @@ int main(int argc, char* argv[])
     {
         cout << "usage: ./test_pokec_simple T < input.txt > ouput.txt\n";
         cout << "T - number of threads to use\n";
+
+        cout << "input format from stdin:\n";
+        cout << "each line: number(n1) <delimiter(space, tab) number(n2)>\n";
+        cout << "explanation: each line means ordered edge from n1 to n2\n";
         return 0;
     }
 
     // read input
     const int               number_of_threads = atoi(argv[1]);
-    const int               start_node = 1;
-    int                     from;
-    int                     to;
-    unordered_map<int, int> seen_ppl; // maps input id to idx
+    int head_id = 0;
+    unordered_map<int, int> input_to_index;
     simple_storage<node>    storage;
-    int                     read_rows = 0;
 
+    int from, to, read_rows = 0;
     while (cin >> from >> to)
     {
-        // make sure nodes in input are created
-        for (int man : {from, to})
-            if (seen_ppl.find(man) == seen_ppl.end())
+        for (int x : {from, to})
+            if (input_to_index.find(x) == input_to_index.end())
             {
-                // mark it as seen
-                seen_ppl.emplace(man, seen_ppl.size());
+                input_to_index.emplace(x, input_to_index.size());
 
                 // make sure storage has allocated enough space
-                if (storage.size() <= seen_ppl.at(man))
-                    storage.resize(seen_ppl.at(man) + 1);
+                if (storage.capacity() <= input_to_index.at(x))
+                    storage.resize(input_to_index.at(x) + 1);
 
-                // create given node
-                new (storage.at(seen_ppl.at(man))) node();
+                // create node
+                new (storage.at(input_to_index.at(x))) node();
 
-                // give it label as in input
-                storage.at(seen_ppl.at(man))->set_label(man);
+                // give it label from input
+                storage.at(input_to_index.at(x))->set_label(x);
             }
+
         // make 'to' neighbor of 'from'
-        storage.at(seen_ppl.at(from))->add_son(storage.at(seen_ppl.at(to)));
+        storage.at(input_to_index.at(from))->add_son(storage.at(input_to_index.at(to)));
 
         // print progress
         if (++read_rows % 5000000 == 0)
             cerr << "Read " << read_rows / 1000000 << "M rows" << endl;
     }
 
-    // start computing
+    // find first unused id
+    while (input_to_index.find(head_id) != input_to_index.end())
+        head_id++;
+
+    // create new head node
+    input_to_index.emplace(head_id, input_to_index.size());
+    if (storage.capacity() <= input_to_index.at(head_id))
+        storage.resize(input_to_index.at(head_id) + 1);
+
+    new (storage.at(input_to_index.at(head_id))) node();
+
+    // connect it to everything
+    for (int i = 0; i < storage.size(); ++i)
+        storage.at(input_to_index.at(head_id))->add_son(storage.at(i));
+
+    // start computing from head node
     vector<thread> threads;
 
     auto time_start = chrono::high_resolution_clock::now();
     for (int i = 0; i < number_of_threads; ++i)
-        threads.emplace_back(simple_algorithm<node>, storage.at(seen_ppl.at(start_node)), (1 << i));
+        threads.emplace_back(simple_algorithm<node>, storage.at(input_to_index.at(head_id)), (1 << i));
     for (thread& t : threads)
         t.join();
     auto time_finish = chrono::high_resolution_clock::now();
@@ -78,7 +94,7 @@ int main(int argc, char* argv[])
 
     // number of SCCs
     unordered_set<node*> tops;
-    for (const pair<int, int>& p : seen_ppl)
+    for (const pair<int, int>& p : input_to_index)
         tops.emplace(storage.at(p.second)->find_set());
     cerr << "Number of components is " << tops.size() << endl;
 }
