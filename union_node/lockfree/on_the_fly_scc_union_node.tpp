@@ -39,7 +39,7 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
             me_repr = me_repr->find_set();
         else if (!other_repr->is_top())
             other_repr = other_repr->find_set();
-        else
+        else if (!me_repr->_spin_lock.load() && !other_repr->_spin_lock.load() && me_repr->is_top() && other_repr->is_top() && me_repr != other_repr)
             return false;
 }
 
@@ -106,7 +106,7 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
     {
         if (other_repr->lock())
         {
-            if (me_repr->same_set(other_repr))
+            if (me_repr == other_repr)
                 success = true;
             else if (me_repr->is_top() && other_repr->is_top())
             {
