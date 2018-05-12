@@ -1,5 +1,5 @@
 on_the_fly_scc_union_node::on_the_fly_scc_union_node()
-: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
+: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _blocked(false), _start_node(this), _next_node(this)
 {
 }
 
@@ -33,13 +33,13 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
     on_the_fly_scc_union_node const * other_repr = other->find_set();
 
     while (true)
-        if (!me_repr->_spin_lock.load() && !other_repr->_spin_lock.load() && me_repr->is_top() && other_repr->is_top() && me_repr == other_repr)
+        if (!me_repr->_blocked.load() && !other_repr->_blocked.load() && me_repr->is_top() && other_repr->is_top() && me_repr == other_repr)
             return true;
         else if (!me_repr->is_top())
             me_repr = me_repr->find_set();
         else if (!other_repr->is_top())
             other_repr = other_repr->find_set();
-        else if (!me_repr->_spin_lock.load() && !other_repr->_spin_lock.load() && me_repr->is_top() && other_repr->is_top() && me_repr != other_repr)
+        else if (!me_repr->_blocked.load() && !other_repr->_blocked.load() && me_repr->is_top() && other_repr->is_top() && me_repr != other_repr)
             return false;
 }
 
@@ -211,6 +211,9 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
+    this->_blocked.store(true);
+    other->_blocked.store(true);
+
     // update data, mask has to go before parent, otherwise has_mask could incorrectly return answer
     _mask.fetch_or(other->_mask.load());
     _size += other->_size.load();
@@ -239,4 +242,7 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
     else if (!new_top_1 && other_1)
         _start_node.store(other_1);
     else if (!new_top_1 && !other_1);
+
+    this->_blocked.store(false);
+    other->_blocked.store(false);
 }
