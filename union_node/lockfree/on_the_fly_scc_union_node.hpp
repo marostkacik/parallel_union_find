@@ -41,6 +41,7 @@ namespace parallel_union_find::union_node::lockfree
         mutable std::atomic<on_the_fly_scc_union_node*> _parent;
         std::atomic<uint64_t>                           _mask;
         std::atomic<uint64_t>                           _size;
+        std::atomic<bool>                               _blocked;
 
         // circular linked list data
         mutable std::atomic<on_the_fly_scc_union_node*> _start_node;
