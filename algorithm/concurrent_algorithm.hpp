@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stack>
+#include <cassert>
 
 namespace parallel_union_find::algorithm
 {

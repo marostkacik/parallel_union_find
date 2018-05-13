@@ -79,8 +79,6 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
                 GraphNode* w = *stack_explore_iterators.top().first;
                 ++stack_explore_iterators.top().first;
 
-                // std::cerr << "looking at " << w->get_label() << std::endl;
-
                 // w is dead, do nothing
                 if (w->is_dead());
                 // "recursively" call on w
@@ -95,6 +93,8 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
                 {
                     while (!stack_explore_nodes_v.top()->same_set(w))
                     {
+                        assert(stack_explore_nodes_v.size() >= 2);
+
                         GraphNode* tmp = stack_path_nodes.top();
                         stack_path_nodes.pop();
 
