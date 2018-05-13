@@ -36,8 +36,8 @@ int main()
     for (thread& t : threads)
         t.join();
 
-    // print answer
-    for (int i = 0; i < 4; ++i)
-        cout << "dad of " << i << " is " << nodes.at(i).find_set()->get_label() << endl;
+    for (int i = 0; i < nodes.size(); ++i)
+        for (int j = 0; j < nodes.size(); ++j)
+            assert(nodes.at(i).same_set(&nodes.at(j)));
 }
 
