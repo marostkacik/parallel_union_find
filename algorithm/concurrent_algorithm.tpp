@@ -62,6 +62,8 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
         // we have everything set, just continue in iterating iterators
         else
         {
+            assert(stack_explore_nodes_v.size() == stack_explore_nodes_vp.size());
+
             // done all neighbors of stack_explore_nodes_vp.top()
             if (stack_explore_iterators.top().first == stack_explore_iterators.top().second)
             {

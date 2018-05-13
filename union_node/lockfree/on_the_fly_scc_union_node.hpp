@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
 
 namespace parallel_union_find::union_node::lockfree
 {

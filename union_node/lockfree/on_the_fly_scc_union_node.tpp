@@ -116,6 +116,8 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
                     other_repr->hook_under_me(me_repr);
 
                 success = true;
+
+                assert(me_repr->same_set(other_repr));
             }
 
             other_repr->unlock();
@@ -135,7 +137,9 @@ on_the_fly_scc_union_node::add_mask(uint64_t mask)
     {
         repr = repr->find_set();
         repr->_mask.fetch_or(mask);
-    } while (!repr->is_top());
+    } while (repr->_blocked.load() || !repr->is_top());
+
+    assert(this->has_mask(mask));
 }
 
 bool
@@ -151,6 +155,8 @@ on_the_fly_scc_union_node::mark_as_dead()
         bool expected = false;
         success = repr->_dead.compare_exchange_strong(expected, true);
     } while (!repr->is_top());
+
+    assert(this->is_dead());
 
     return success;
 }
@@ -179,6 +185,9 @@ void
 on_the_fly_scc_union_node::unlock() const
 {
     bool expected = true;
+
+    assert(_spin_lock.load());
+
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
