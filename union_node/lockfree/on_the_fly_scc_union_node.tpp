@@ -223,6 +223,9 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
     this->_blocked.store(true);
     other->_blocked.store(true);
 
+    assert(!this->is_dead());
+    assert(!other->is_dead());
+
     // update data, mask has to go before parent, otherwise has_mask could incorrectly return answer
     _mask.fetch_or(other->_mask.load());
     _size += other->_size.load();
