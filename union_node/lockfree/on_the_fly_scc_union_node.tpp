@@ -238,10 +238,14 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
     if (new_top_1 && other_1)
         new_top_1->_next_node.store(other_2),
         other_1->_next_node.store(new_top_2);
-    else if (new_top_1 && !other_1);
+    else if (new_top_1 && !other_1)
+    {
+    }
     else if (!new_top_1 && other_1)
         _start_node.store(other_1);
-    else if (!new_top_1 && !other_1);
+    else if (!new_top_1 && !other_1)
+    {
+    }
 
     this->_blocked.store(false);
     other->_blocked.store(false);

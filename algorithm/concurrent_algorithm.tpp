@@ -43,8 +43,10 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
 
             if (!candidate)
             {
-                if (stack_explore_nodes_v.top()->mark_as_dead());
+                if (stack_explore_nodes_v.top()->mark_as_dead())
+                {
                     // You can report SCC here after locking and if you would remember more data
+                }
 
                 if (stack_explore_nodes_v.top() == stack_path_nodes.top())
                     stack_path_nodes.pop();
@@ -80,7 +82,9 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
                 ++stack_explore_iterators.top().first;
 
                 // w is dead, do nothing
-                if (w->is_dead());
+                if (w->is_dead())
+                {
+                }
                 // "recursively" call on w
                 else if (!w->has_mask(thread_id))
                 {
