@@ -15,6 +15,20 @@ internal_::get_vp_from(GraphNode* vp)
 }
 
 template<typename GraphNode>
+bool
+internal_::same_set(GraphNode* gn1, GraphNode* gn2)
+{
+    std::pair<bool, bool> ans;
+
+    do
+    {
+        ans = gn1->same_set(gn2);
+    } while (!ans.second);
+
+    return ans.first;
+}
+
+template<typename GraphNode>
 void
 concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
 {
@@ -26,7 +40,7 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
     std::stack<std::pair<GNiterator, GNiterator>> stack_explore_iterators; // iterators to neighbors of stack_explore_nodes_vp
 
     // dfs init
-    start_node->add_mask(thread_id);
+    while (!start_node->add_mask(thread_id));
     stack_path_nodes.emplace(start_node);
     stack_explore_nodes_v.emplace(start_node);
 
@@ -90,14 +104,14 @@ concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
                 // "recursively" call on w
                 else if (!w->has_mask(thread_id))
                 {
-                    w->add_mask(thread_id);
+                    while (!w->add_mask(thread_id));
                     stack_path_nodes.emplace(w);
                     stack_explore_nodes_v.emplace(w);
                 }
                 // found cycle, merge until w and stack_explore_nodes_v.top() are in same set
                 else
                 {
-                    while (!stack_explore_nodes_v.top()->same_set(w))
+                    while (!internal_::same_set(stack_explore_nodes_v.top(), w))
                     {
                         assert(stack_explore_nodes_v.size() >= 2);
 

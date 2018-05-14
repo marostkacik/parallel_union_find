@@ -9,6 +9,9 @@ namespace parallel_union_find::algorithm
     {
         template<typename GraphNode>
         GraphNode* get_vp_from(GraphNode* vp);
+
+        template<typename GraphNode>
+        bool same_set(GraphNode* gn1, GraphNode* gn2);
     }
 
     template<typename GraphNode>
