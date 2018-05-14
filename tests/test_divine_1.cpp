@@ -1,6 +1,7 @@
 #include <vector>
 #include <thread>
 #include <iostream>
+#include <tuple>
 #include "union_node/lockfree/on_the_fly_scc_union_node.hpp"
 #include "graph_node/concurrent_graph_node.hpp"
 #include "algorithm/concurrent_algorithm.hpp"
@@ -38,6 +39,13 @@ int main()
 
     for (int i = 0; i < nodes.size(); ++i)
         for (int j = 0; j < nodes.size(); ++j)
-            assert(nodes.at(i).same_set(&nodes.at(j)));
+        {
+            std::pair<bool, bool> ans = nodes.at(i).same_set(&nodes.at(j));
+
+            while (!ans.second)
+                ans = nodes.at(i).same_set(&nodes.at(j));
+
+            assert(ans.first);
+        }
 }
 
