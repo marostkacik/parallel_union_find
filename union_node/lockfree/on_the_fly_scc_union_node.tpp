@@ -1,5 +1,5 @@
 on_the_fly_scc_union_node::on_the_fly_scc_union_node()
-: _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _blocked(false), _start_node(this), _next_node(this)
+: _lock(false), _block(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _start_node(this), _next_node(this)
 {
 }
 
@@ -26,21 +26,23 @@ on_the_fly_scc_union_node::find_set() const
     return me;
 }
 
-bool
+std::pair<bool, bool>
 on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) const
 {
     on_the_fly_scc_union_node const * me_repr    = find_set();
     on_the_fly_scc_union_node const * other_repr = other->find_set();
 
     while (true)
-        if (!me_repr->_blocked.load() && !other_repr->_blocked.load() && me_repr->is_top() && other_repr->is_top() && me_repr == other_repr)
-            return true;
+        if (me_repr->is_blocked() || other_repr->is_blocked())
+            return {false, false};
+        else if (me_repr->is_top() && other_repr->is_top() && me_repr == other_repr)
+            return {true, true};
+        else if (me_repr->is_top() && other_repr->is_top() && me_repr != other_repr)
+            return {false, true};
         else if (!me_repr->is_top())
             me_repr = me_repr->find_set();
         else if (!other_repr->is_top())
             other_repr = other_repr->find_set();
-        else if (!me_repr->_blocked.load() && !other_repr->_blocked.load() && me_repr->is_top() && other_repr->is_top() && me_repr != other_repr)
-            return false;
 }
 
 bool
@@ -96,12 +98,15 @@ on_the_fly_scc_union_node::get_node_from_set() const
 bool
 on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
 {
-    on_the_fly_scc_union_node* me_repr    = find_set();
-    on_the_fly_scc_union_node* other_repr = other->find_set();
-    bool  success                         = false;
+    on_the_fly_scc_union_node* me_repr      = find_set();
+    on_the_fly_scc_union_node* other_repr   = other->find_set();
+    std::pair<bool, bool>      same_set_ans = me_repr->same_set(other_repr);
+    bool  success                           = false;
 
-    if (me_repr->same_set(other_repr))
-        success = true;
+    if (!same_set_ans.second)
+        success = same_set_ans.second;
+    else if (same_set_ans.first)
+        success = same_set_ans.first;
     else if (me_repr->lock())
     {
         if (other_repr->lock())
@@ -116,8 +121,6 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
                     other_repr->hook_under_me(me_repr);
 
                 success = true;
-
-                assert(me_repr->same_set(other_repr));
             }
 
             other_repr->unlock();
@@ -128,7 +131,7 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
     return success;
 }
 
-void
+bool
 on_the_fly_scc_union_node::add_mask(uint64_t mask)
 {
     on_the_fly_scc_union_node* repr = find_set();
@@ -137,9 +140,12 @@ on_the_fly_scc_union_node::add_mask(uint64_t mask)
     {
         repr = repr->find_set();
         repr->_mask.fetch_or(mask);
-    } while (repr->_blocked.load() || !repr->is_top());
 
-    assert(this->has_mask(mask));
+        if (repr->is_blocked())
+            return false;
+        else if (repr->is_top())
+            return true;
+    } while (true);
 }
 
 bool
@@ -178,7 +184,7 @@ bool
 on_the_fly_scc_union_node::lock() const
 {
     bool expected = false;
-    return _spin_lock.compare_exchange_strong(expected, true);
+    return _lock.compare_exchange_strong(expected, true);
 }
 
 void
@@ -186,9 +192,32 @@ on_the_fly_scc_union_node::unlock() const
 {
     bool expected = true;
 
-    assert(_spin_lock.load());
+    assert(_lock.load());
 
-    _spin_lock.compare_exchange_strong(expected, false);
+    _lock.compare_exchange_strong(expected, false);
+}
+
+void
+on_the_fly_scc_union_node::block()
+{
+    bool expected = false;
+    _block.compare_exchange_strong(expected, true);
+}
+
+void
+on_the_fly_scc_union_node::unblock()
+{
+    bool expected = true;
+
+    assert(_block.load());
+
+    _block.compare_exchange_strong(expected, false);
+}
+
+bool
+on_the_fly_scc_union_node::is_blocked() const
+{
+    return _block.load();
 }
 
 on_the_fly_scc_union_node*
@@ -220,8 +249,8 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
 void
 on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
 {
-    this->_blocked.store(true);
-    other->_blocked.store(true);
+    this->block();
+    other->block();
 
     assert(!this->is_dead());
     assert(!other->is_dead());
@@ -259,6 +288,6 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
     {
     }
 
-    this->_blocked.store(false);
-    other->_blocked.store(false);
+    this->unblock();
+    other->unblock();
 }
