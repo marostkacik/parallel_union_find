@@ -2,6 +2,7 @@
 #include <thread>
 #include <iostream>
 #include <cassert>
+#include <cstdint>
 #include "union_node/lockfree/on_the_fly_scc_union_node.hpp"
 #include "graph_node/concurrent_graph_node.hpp"
 #include "algorithm/concurrent_algorithm.hpp"
@@ -14,6 +15,21 @@ using namespace parallel_union_find::algorithm;
 using node = concurrent_graph_node<on_the_fly_scc_union_node>;
 
 vector<node> nodes(2);
+
+bool same_set(node* n1, node* n2)
+{
+    std::pair<bool, bool> ans = n1->same_set(n2);
+
+    while (!ans.second)
+        ans = n1->same_set(n2);
+
+    return ans.first;
+}
+
+void add_mask(node* n, uint64_t mask)
+{
+    while (!n->add_mask(mask));
+}
 
 int main()
 {
@@ -28,17 +44,17 @@ int main()
 
     std::thread t1([](){
         while (!nodes.at(0).union_set(&nodes.at(1)));
-        assert(nodes.at(1).same_set(&nodes.at(0)));
+        assert(same_set(&nodes.at(1), &nodes.at(0)));
     });
     std::thread t2([](){
         while (!nodes.at(1).union_set(&nodes.at(0)));
-        assert(nodes.at(0).same_set(&nodes.at(1)));
+        assert(same_set(&nodes.at(0), &nodes.at(1)));
     });
 
     t1.join();
     t2.join();
 
-    assert(nodes.at(1).same_set(&nodes.at(0)));
-    assert(nodes.at(0).same_set(&nodes.at(1)));
+    assert(same_set(&nodes.at(1), &nodes.at(0)));
+    assert(same_set(&nodes.at(0), &nodes.at(1)));
 }
 
