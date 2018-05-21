@@ -3,7 +3,7 @@
 #include <atomic>
 #include <cassert>
 
-namespace parallel_union_find::union_node::lockfree
+namespace parallel_union_find::union_set
 {
     class on_the_fly_scc_union_node
     {
