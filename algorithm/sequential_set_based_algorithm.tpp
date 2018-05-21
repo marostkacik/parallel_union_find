@@ -10,7 +10,6 @@ sequential_set_based_algorithm(GraphNode* start_node, const uint64_t thread_id)
     std::unordered_set<GraphNode*>                seen_graph_nodes;
 
     // dfs init
-    start_node->add_mask(thread_id);
     stack_path_nodes.emplace(start_node);
     stack_explore_nodes_v.emplace(start_node);
     stack_explore_nodes_iterators.emplace(start_node->get_random_neighbors_iterators());
