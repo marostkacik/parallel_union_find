@@ -16,7 +16,7 @@ internal_::get_vp_from(GraphNode* vp)
 
 template<typename GraphNode>
 void
-concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id)
+multi_core_on_the_fly_scc_decomposition_algorithm(GraphNode* start_node, const uint64_t thread_id)
 {
     using GNiterator = typename GraphNode::iterator;
 
