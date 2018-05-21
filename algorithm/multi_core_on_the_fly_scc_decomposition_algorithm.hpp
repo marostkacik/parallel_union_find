@@ -12,7 +12,7 @@ namespace parallel_union_find::algorithm
     }
 
     template<typename GraphNode>
-    void concurrent_algorithm(GraphNode* start_node, const uint64_t thread_id);
+    void multi_core_on_the_fly_scc_decomposition_algorithm(GraphNode* start_node, const uint64_t thread_id);
 
-#include "concurrent_algorithm.tpp"
+#include "multi_core_on_the_fly_scc_decomposition_algorithm.tpp"
 }
