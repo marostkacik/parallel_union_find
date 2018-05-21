@@ -1,14 +1,14 @@
-on_the_fly_scc_union_node::on_the_fly_scc_union_node()
+on_the_fly_scc_union_find_set::on_the_fly_scc_union_find_set()
 : _spin_lock(false), _dead(false), _done(false), _parent(this), _mask(0), _size(1), _blocked(false), _start_node(this), _next_node(this)
 {
 }
 
-on_the_fly_scc_union_node*
-on_the_fly_scc_union_node::find_set() const
+on_the_fly_scc_union_find_set*
+on_the_fly_scc_union_find_set::find_set() const
 {
-    on_the_fly_scc_union_node* me           = const_cast<on_the_fly_scc_union_node*>(this);
-    on_the_fly_scc_union_node* parent       = _parent.load();
-    on_the_fly_scc_union_node* grand_parent = nullptr;
+    on_the_fly_scc_union_find_set* me           = const_cast<on_the_fly_scc_union_find_set*>(this);
+    on_the_fly_scc_union_find_set* parent       = _parent.load();
+    on_the_fly_scc_union_find_set* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ on_the_fly_scc_union_node::find_set() const
 }
 
 bool
-on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) const
+on_the_fly_scc_union_find_set::same_set(on_the_fly_scc_union_find_set const * other) const
 {
-    on_the_fly_scc_union_node const * me_repr    = find_set();
-    on_the_fly_scc_union_node const * other_repr = other->find_set();
+    on_the_fly_scc_union_find_set const * me_repr    = find_set();
+    on_the_fly_scc_union_find_set const * other_repr = other->find_set();
 
     while (true)
         if (!me_repr->_blocked.load() && !other_repr->_blocked.load() && me_repr->is_top() && other_repr->is_top() && me_repr == other_repr)
@@ -44,28 +44,28 @@ on_the_fly_scc_union_node::same_set(on_the_fly_scc_union_node const * other) con
 }
 
 bool
-on_the_fly_scc_union_node::has_mask(uint64_t mask) const
+on_the_fly_scc_union_find_set::has_mask(uint64_t mask) const
 {
     return (find_set()->_mask.load() & mask) != 0;
 }
 
 bool
-on_the_fly_scc_union_node::is_dead() const
+on_the_fly_scc_union_find_set::is_dead() const
 {
     return find_set()->_dead.load();
 }
 
 bool
-on_the_fly_scc_union_node::is_done() const
+on_the_fly_scc_union_find_set::is_done() const
 {
     return _done.load();
 }
 
-on_the_fly_scc_union_node*
-on_the_fly_scc_union_node::get_node_from_set() const
+on_the_fly_scc_union_find_set*
+on_the_fly_scc_union_find_set::get_node_from_set() const
 {
-    on_the_fly_scc_union_node* act  = _start_node.load();
-    on_the_fly_scc_union_node* next = nullptr;
+    on_the_fly_scc_union_find_set* act  = _start_node.load();
+    on_the_fly_scc_union_find_set* next = nullptr;
 
     // grab act node only for yourself
     do
@@ -94,11 +94,11 @@ on_the_fly_scc_union_node::get_node_from_set() const
 }
 
 bool
-on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
+on_the_fly_scc_union_find_set::union_set(on_the_fly_scc_union_find_set* other)
 {
-    on_the_fly_scc_union_node* me_repr    = find_set();
-    on_the_fly_scc_union_node* other_repr = other->find_set();
-    bool  success                         = false;
+    on_the_fly_scc_union_find_set* me_repr    = find_set();
+    on_the_fly_scc_union_find_set* other_repr = other->find_set();
+    bool  success                             = false;
 
     if (me_repr->same_set(other_repr))
         success = true;
@@ -129,9 +129,9 @@ on_the_fly_scc_union_node::union_set(on_the_fly_scc_union_node* other)
 }
 
 void
-on_the_fly_scc_union_node::add_mask(uint64_t mask)
+on_the_fly_scc_union_find_set::add_mask(uint64_t mask)
 {
-    on_the_fly_scc_union_node* repr = find_set();
+    on_the_fly_scc_union_find_set* repr = find_set();
 
     do
     {
@@ -143,9 +143,9 @@ on_the_fly_scc_union_node::add_mask(uint64_t mask)
 }
 
 bool
-on_the_fly_scc_union_node::mark_as_dead()
+on_the_fly_scc_union_find_set::mark_as_dead()
 {
-    on_the_fly_scc_union_node* repr = find_set();
+    on_the_fly_scc_union_find_set* repr = find_set();
     bool                       success;
 
     do
@@ -162,27 +162,27 @@ on_the_fly_scc_union_node::mark_as_dead()
 }
 
 bool
-on_the_fly_scc_union_node::mark_as_done()
+on_the_fly_scc_union_find_set::mark_as_done()
 {
     bool expected = false;
     return _done.compare_exchange_strong(expected, true);
 }
 
 bool
-on_the_fly_scc_union_node::is_top() const
+on_the_fly_scc_union_find_set::is_top() const
 {
     return _parent.load() == this;
 }
 
 bool
-on_the_fly_scc_union_node::lock() const
+on_the_fly_scc_union_find_set::lock() const
 {
     bool expected = false;
     return _spin_lock.compare_exchange_strong(expected, true);
 }
 
 void
-on_the_fly_scc_union_node::unlock() const
+on_the_fly_scc_union_find_set::unlock() const
 {
     bool expected = true;
 
@@ -191,11 +191,11 @@ on_the_fly_scc_union_node::unlock() const
     _spin_lock.compare_exchange_strong(expected, false);
 }
 
-on_the_fly_scc_union_node*
-on_the_fly_scc_union_node::get_node_from_set_not_locking()
+on_the_fly_scc_union_find_set*
+on_the_fly_scc_union_find_set::get_node_from_set_not_locking()
 {
-    on_the_fly_scc_union_node* act  = _start_node.load();
-    on_the_fly_scc_union_node* next = nullptr;
+    on_the_fly_scc_union_find_set* act  = _start_node.load();
+    on_the_fly_scc_union_find_set* next = nullptr;
 
     // grab act only for yourself
     do
@@ -218,7 +218,7 @@ on_the_fly_scc_union_node::get_node_from_set_not_locking()
 }
 
 void
-on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
+on_the_fly_scc_union_find_set::hook_under_me(on_the_fly_scc_union_find_set* other)
 {
     this->_blocked.store(true);
     other->_blocked.store(true);
@@ -231,10 +231,10 @@ on_the_fly_scc_union_node::hook_under_me(on_the_fly_scc_union_node* other)
     _size += other->_size.load();
     other->_parent.compare_exchange_strong(other, this);
 
-    on_the_fly_scc_union_node* new_top_1 = this->get_node_from_set_not_locking();
-    on_the_fly_scc_union_node* new_top_2 = nullptr;
-    on_the_fly_scc_union_node* other_1   = other->get_node_from_set_not_locking();
-    on_the_fly_scc_union_node* other_2   = nullptr;
+    on_the_fly_scc_union_find_set* new_top_1 = this->get_node_from_set_not_locking();
+    on_the_fly_scc_union_find_set* new_top_2 = nullptr;
+    on_the_fly_scc_union_find_set* other_1   = other->get_node_from_set_not_locking();
+    on_the_fly_scc_union_find_set* other_2   = nullptr;
 
     while (new_top_1 && new_top_1->is_done())
         new_top_1 = this->get_node_from_set_not_locking();
