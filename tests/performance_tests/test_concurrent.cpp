@@ -4,7 +4,10 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include "union_node/lockfree/on_the_fly_scc_union_node.hpp"
+
+#include "union_find/lockfree/union_find.hpp"
+#include "union_find/blocking/on_the_fly_scc_union_node.hpp"
+
 #include "graph_node/concurrent_graph_node.hpp"
 #include "algorithm/concurrent_algorithm.hpp"
 #include "storage/simple_storage.hpp"
