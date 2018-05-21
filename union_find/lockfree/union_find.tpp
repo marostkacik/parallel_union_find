@@ -1,14 +1,14 @@
-union_find_set::union_find_set()
+union_find::union_find()
 : _dead(false), _parent(this)
 {
 }
 
-union_find_set*
-union_find_set::find_set() const
+union_find*
+union_find::find_set() const
 {
-    union_find_set* me           = const_cast<union_find_set*>(this);
-    union_find_set* parent       = _parent.load();
-    union_find_set* grand_parent = nullptr;
+    union_find* me           = const_cast<union_find*>(this);
+    union_find* parent       = _parent.load();
+    union_find* grand_parent = nullptr;
 
     while (me != parent)
     {
@@ -27,10 +27,10 @@ union_find_set::find_set() const
 }
 
 bool
-union_find_set::same_set(union_find_set const * other) const
+union_find::same_set(union_find const * other) const
 {
-    union_find_set const * me_repr    = find_set();
-    union_find_set const * other_repr = other->find_set();
+    union_find const * me_repr    = find_set();
+    union_find const * other_repr = other->find_set();
 
     while (true)
         if (me_repr == other_repr)
@@ -44,16 +44,16 @@ union_find_set::same_set(union_find_set const * other) const
 }
 
 bool
-union_find_set::is_dead() const
+union_find::is_dead() const
 {
     return find_set()->_dead.load();
 }
 
 bool
-union_find_set::union_set(union_find_set* other)
+union_find::union_set(union_find* other)
 {
-    union_find_set* me_repr    = find_set();
-    union_find_set* other_repr = other->find_set();
+    union_find* me_repr    = find_set();
+    union_find* other_repr = other->find_set();
 
     if (me_repr->same_set(other_repr))
         return true;
@@ -65,10 +65,10 @@ union_find_set::union_set(union_find_set* other)
 }
 
 bool
-union_find_set::mark_as_dead()
+union_find::mark_as_dead()
 {
-    union_find_set* repr = find_set();
-    bool            success;
+    union_find* repr = find_set();
+    bool        success;
 
     do
     {
@@ -82,7 +82,7 @@ union_find_set::mark_as_dead()
 }
 
 bool
-union_find_set::is_top() const
+union_find::is_top() const
 {
     return _parent.load() == this;
 }
