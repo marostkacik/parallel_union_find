@@ -13,11 +13,13 @@ using node = on_the_fly_scc_graph_node<on_the_fly_scc_union_find>;
 
 node n1;
 node n2;
+node n3;
 
 int main()
 {
     n1.add_son(&n2);
     n2.add_son(&n1);
+    n1.add_son(&n3);
 
     // run
     thread t1(sequential_set_based_algorithm<node>, &n1, 1);
@@ -29,5 +31,7 @@ int main()
     // check result
     assert(n1.same_set(&n2));
     assert(n2.same_set(&n1));
+    assert(!n1.same_set(&n3));
+    assert(!n2.same_set(&n3));
 }
 
