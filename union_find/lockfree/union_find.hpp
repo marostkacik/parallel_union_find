@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-namespace parallel_union_find::union_find::waitfree
+namespace parallel_union_find::union_find::lockfree
 {
     class union_find
     {
