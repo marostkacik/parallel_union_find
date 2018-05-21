@@ -33,14 +33,14 @@ graph_node<union_node>::get_label() const
     return _label;
 }
 
-// values for random generator, seed is address
-const static size_t a = 1103515245;
-const static size_t c = 12345;
-
 template<typename union_node>
 graph_node_iterator<union_node>::graph_node_iterator(const std::vector<graph_node<union_node>*>& vector, size_t steps)
 : _vector(vector), _next_pos(), _steps(steps)
 {
+    // values for random generator, seed is address
+    const static size_t a = 1103515245;
+    const static size_t c = 12345;
+
     if (_vector.size() == 0)
         _next_pos = 0;
     else
