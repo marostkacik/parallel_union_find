@@ -1,43 +1,42 @@
 #include <vector>
 #include <thread>
-#include <iostream>
-#include "union_node/lockfree/on_the_fly_scc_union_node.hpp"
-#include "graph_node/concurrent_graph_node.hpp"
-#include "algorithm/concurrent_algorithm.hpp"
+#include <cassert>
+
+#include "union_find/lockfree/union_find.hpp"
+#include "graph_node/graph_node.hpp"
 
 using namespace std;
-using namespace parallel_union_find::union_node::lockfree;
+using namespace parallel_union_find::union_find::lockfree;
 using namespace parallel_union_find::graph_node;
-using namespace parallel_union_find::algorithm;
 
-using node = concurrent_graph_node<on_the_fly_scc_union_node>;
+using node = graph_node<union_find>;
 
-vector<node> nodes(4);
+vector<node> nodes(2);
 
 int main()
 {
     // set labels
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 2; ++i)
         nodes.at(i).set_label(i);
 
-    // set edges 0 -> 1, 1 -> 2, 2 -> 3, 3 -> 3, 3 -> 0
+    // set edges 0 -> 1, 1 -> 0
     nodes.at(0).add_son(&nodes.at(1));
-    nodes.at(1).add_son(&nodes.at(2));
-    nodes.at(2).add_son(&nodes.at(3));
-    nodes.at(3).add_son(&nodes.at(3));
-    nodes.at(3).add_son(&nodes.at(0));
+    nodes.at(1).add_son(&nodes.at(0));
 
-    // run
-    const int num_threads = 2;
-    vector<thread> threads;
 
-    for (int i = 0; i < num_threads; ++i)
-        threads.emplace_back(concurrent_algorithm<node>, &nodes.at(0), (1 << i));
-    for (thread& t : threads)
-        t.join();
+    std::thread t1([](){
+        while (!nodes.at(0).union_set(&nodes.at(1)));
+        assert(nodes.at(1).same_set(&nodes.at(0)));
+    });
+    std::thread t2([](){
+        while (!nodes.at(1).union_set(&nodes.at(0)));
+        assert(nodes.at(0).same_set(&nodes.at(1)));
+    });
 
-    for (int i = 0; i < nodes.size(); ++i)
-        for (int j = 0; j < nodes.size(); ++j)
-            assert(nodes.at(i).same_set(&nodes.at(j)));
+    t1.join();
+    t2.join();
+
+    assert(nodes.at(1).same_set(&nodes.at(0)));
+    assert(nodes.at(0).same_set(&nodes.at(1)));
 }
 
