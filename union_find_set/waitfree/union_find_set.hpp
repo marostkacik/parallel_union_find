@@ -2,31 +2,31 @@
 
 #include <atomic>
 
-namespace parallel_union_find::union_node::waitfree
+namespace parallel_union_find::union_find_set::waitfree
 {
-    class simple_union_node
+    class union_find_set
     {
     public:
-        simple_union_node();
+        union_find_set();
 
         // observers
-        simple_union_node* find_set() const;
-        bool               same_set(simple_union_node const *) const;
-        bool               is_dead() const;
+        union_find_set* find_set() const;
+        bool            same_set(union_find_set const *) const;
+        bool            is_dead() const;
 
         // mutators
-        bool               union_set(simple_union_node*);
-        bool               mark_as_dead();
+        bool            union_set(union_find_set*);
+        bool            mark_as_dead();
 
     private:
-        bool               is_top() const;
+        bool            is_top() const;
 
     private:
-        std::atomic<bool>                       _dead;
+        std::atomic<bool>                    _dead;
 
         // union set data
-        mutable std::atomic<simple_union_node*> _parent;
+        mutable std::atomic<union_find_set*> _parent;
     };
 
-#include "simple_union_node.tpp"
+#include "union_find_set.tpp"
 }
