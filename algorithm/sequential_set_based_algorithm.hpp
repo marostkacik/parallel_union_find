@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stack>
+#include <unordered_set>
 
 namespace parallel_union_find::algorithm
 {
