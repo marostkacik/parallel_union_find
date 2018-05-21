@@ -22,11 +22,7 @@ int main()
     n1.add_son(&n3);
 
     // run
-    thread t1(sequential_set_based_algorithm<node>, &n1, 1);
     sequential_set_based_algorithm<node>(&n1, 2);
-
-    // wait for computation to end
-    t1.join();
 
     // check result
     assert(n1.same_set(&n2));
