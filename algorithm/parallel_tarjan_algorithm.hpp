@@ -6,7 +6,7 @@
 namespace parallel_union_find::algorithm
 {
     template<typename GraphNode>
-    void simple_algorithm(GraphNode* start_node, const uint64_t thread_id);
+    void parallel_tarjan_algorithm(GraphNode* start_node, const uint64_t thread_id);
 
-#include "simple_algorithm.tpp"
+#include "parallel_tarjan_algorithm.tpp"
 }
