@@ -1,19 +1,19 @@
-## Header-only library for finding strongly connected components
+## Header-only library for finding strongly connected components in parallel
 Usage example:
 ```C++
 #include <vector>
 #include <thread>
 #include <cassert>
 
-#include "algorithm/concurrent_algorithm.hpp"
-#include "graph_node/concurrent_graph_node.hpp"
-#include "union_node/lockfree/on_the_fly_scc_union_node.hpp"
+#include "parallel_union_find/algorithm/multi_core_on_the_fly_scc_decomposition_algorithm.hpp"
+#include "parallel_union_find/graph_node/on_the_fly_scc_graph_node.hpp"
+#include "parallel_union_find/union_find/blocking/on_the_fly_scc_union_find.hpp"
 
 using namespace parallel_union_find::algorithm;
 using namespace parallel_union_find::graph_node;
-using namespace parallel_union_find::union_node::lockfree;
+using namespace parallel_union_find::union_find::blocking;
 
-using node = concurrent_graph_node<on_the_fly_scc_union_node>;
+using node = on_the_fly_scc_graph_node<on_the_fly_scc_union_find>;
 
 node n1;
 node n2;
@@ -28,7 +28,7 @@ int main()
     std::vector<std::thread> threads;
 
     for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
-        threads.emplace_back(concurrent_algorithm<node>, &n1, (1 << i));
+        threads.emplace_back(multi_core_on_the_fly_scc_decomposition_algorithm<node>, &n1, (1 << i));
 
     for (std::thread& t : threads)
         t.join();
