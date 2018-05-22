@@ -17,6 +17,7 @@ on_the_fly_scc_union_find::find_set() const
 
         // update data
         me->_parent.compare_exchange_strong(parent, grand_parent);
+        parent->_mask.fetch_or(me->_mask.load());
 
         // move up
         me     = parent;
